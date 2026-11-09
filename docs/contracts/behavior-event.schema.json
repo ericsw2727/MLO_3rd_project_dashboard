@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Trusted learning event v2 - ingestion endpoint not implemented",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "session_id",
+    "run_id",
+    "sequence",
+    "event_type",
+    "occurred_at",
+    "payload"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "2.0"
+    },
+    "event_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "session_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "run_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "attempt_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "event_type": {
+      "enum": [
+        "task_started",
+        "task_completed",
+        "task_abandoned",
+        "attempt_started",
+        "attempt_failed",
+        "attempt_succeeded",
+        "operation_succeeded",
+        "operation_failed",
+        "paused",
+        "resumed",
+        "hint"
+      ]
+    },
+    "operation": {
+      "type": "string",
+      "maxLength": 40
+    },
+    "failure_reason": {
+      "type": "string",
+      "maxLength": 80
+    },
+    "state_before": {
+      "type": "object"
+    },
+    "state_after": {
+      "type": "object"
+    },
+    "hint_id": {
+      "type": "string",
+      "maxLength": 80
+    },
+    "hint_step": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "enum": [
+              "attempt_started",
+              "attempt_failed",
+              "attempt_succeeded",
+              "operation_succeeded",
+              "operation_failed"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "attempt_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "operation_failed"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "operation",
+          "failure_reason",
+          "state_before",
+          "state_after"
+        ],
+        "properties": {
+          "operation": {
+            "minLength": 1
+          },
+          "failure_reason": {
+            "minLength": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "operation_succeeded"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "operation"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "hint"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "hint_id",
+          "hint_step"
+        ],
+        "properties": {
+          "hint_id": {
+            "minLength": 1
+          }
+        }
+      }
+    }
+  ]
+}

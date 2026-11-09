@@ -1,0 +1,19 @@
+{
+  "document_version": "0.1-review-draft",
+  "event_contract_version": "3.0-proposed",
+  "status": "team review required; not deployed API specification",
+  "files": [
+    "output/pdf/NODEVERSE_팀공유_아키텍처_데이터셋_정의서.pdf",
+    "output/pdf/NODEVERSE_팀공유_이벤트_파이프라인_연동규약서.pdf",
+    "docs/team_handoff/diagnosis.example.json",
+    "docs/team_handoff/event-batch-v3.example.json",
+    "docs/team_handoff/raw-event-v3.example.json",
+    "output/images/NODEVERSE_파이프라인_관리자진단_흐름도.png"
+  ],
+  "notes": [
+    "No application or database changes.",
+    "JSON examples contain fictitious IDs.",
+    "Existing local contract 2.0 is not replaced.",
+    "Latest diagnosis output adds a fifth logical MongoDB dataset group."
+  ]
+}

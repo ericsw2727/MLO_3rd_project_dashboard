@@ -1,0 +1,377 @@
+[
+  {
+    "file": "NODEVERSE_인증환경_구현기획안.pdf",
+    "title": "NODEVERSE 관리자 행동 분석 플랫폼",
+    "sections": [
+      {
+        "title": "1. 서비스 목적",
+        "paragraphs": [
+          "관리자가 게임 플레이어들의 데이터를 모아 행동 흐름을 관찰하는 웹 분석 콘솔이다. 일반 플레이어는 웹 회원가입이나 로그인을 하지 않는다. 관리자 계정과 분석 대상 플레이어를 별개의 엔티티로 관리한다."
+        ],
+        "table": null,
+        "code": null
+      },
+      {
+        "title": "2. 현재 구현 범위",
+        "paragraphs": [
+          "Django 5.2, MySQL, 관리자 세션 인증과 CSRF 보호를 사용한다. 관리자 초대 가입, 로그인, 로그아웃, 분석 개요, 플레이어 목록·상세, 행동 로그 탐색과 읽기 전용 API를 제공한다.",
+          "분석용 플레이어·세션·이벤트를 로컬 MySQL에 저장한다. MongoDB, Kafka, Spark, AI는 연결하지 않는다. 실제 Unity 게임 데이터 수집 API는 아직 구현하지 않았다.",
+          "개선된 분석은 문제 버전·문제 실행·풀이 시도를 구분한다. 연산과 실패 원인, 전후 상태, 힌트 종류, 일시정지·재개를 기록하고 문제 해결률과 재시도·포기·실제 풀이 시간을 계산한다."
+        ],
+        "table": null,
+        "code": null
+      },
+      {
+        "title": "3. 화면 구성",
+        "paragraphs": [
+          "관리자 로그인: /staff/login/ · 초대 가입: /staff/register/ · 내 계정: /me/",
+          "분석 개요: / 또는 /staff/ · 플레이어 목록: /staff/players/ · 개별 분석: /staff/players/{UUID}/ · 행동 로그: /staff/events/"
+        ],
+        "table": null,
+        "code": null
+      },
+      {
+        "title": "4. 데이터 보존 및 권한",
+        "paragraphs": [
+          "기존 일반 계정은 accounts_user에 보관한다. 동일 UUID로 telemetry_player에 분석 대상 레코드를 생성했다. 일반 계정을 관리자로 승격하거나 기존 비밀번호·계정을 삭제하지 않았다.",
+          "AdminBackend는 role=admin이고 활성 상태인 계정만 인증한다. 과거 일반 사용자 세션과 기존 인증 백엔드 세션은 더 이상 접근할 수 없다. 변경 후 기존 관리자는 재로그인이 필요할 수 있다."
+        ],
+        "table": null,
+        "code": null
+      },
+      {
+        "title": "5. 검증과 다음 단계",
+        "paragraphs": [
+          "별도 MySQL 테스트 DB에서 인증·권한·이관과 집계·필터·구조화 로그·중복 전송·시간 계산·메타데이터 검증을 테스트한다. 현재 전체 테스트 22개 통과.",
+          "다음 단계는 Unity 배포 방식, 플레이어 식별 정책, 신뢰할 수 있는 게임 수집 서버 인증을 정하는 것이다. 이후 실제 데이터 수집, 보관 정책과 규모에 맞는 MongoDB 이전을 검토한다."
+        ],
+        "table": null,
+        "code": null
+      }
+    ]
+  },
+  {
+    "file": "NODEVERSE_설치_실행_가이드.pdf",
+    "title": "관리자 분석 콘솔 설치·실행 가이드",
+    "sections": [
+      {
+        "title": "1. 환경 준비",
+        "paragraphs": [
+          "프로젝트 루트에서 Windows PowerShell을 사용한다. Python 3.13과 MySQL이 필요하다. 아래 설치 명령은 최초 설정 시 실행한다."
+        ],
+        "table": null,
+        "code": [
+          "python -m venv .venv",
+          ".\\.venv\\Scripts\\python -m pip install -r requirements.txt",
+          "Copy-Item .env.example .env"
+        ]
+      },
+      {
+        "title": "2. 환경변수",
+        "paragraphs": [
+          "기존 .env가 있다면 덮어쓰지 않는다. DJANGO_SECRET_KEY, MYSQL_DATABASE, MYSQL_USER, MYSQL_PASSWORD, MYSQL_HOST, MYSQL_PORT를 실제 환경에 맞게 설정한다. 비밀값을 Git이나 문서에 기록하지 않는다.",
+          "관리자 가입은 ADMIN_REGISTRATION_CODE 값이 설정된 경우에만 가능하다. 빈 값이면 가입이 닫힌다. 이 코드는 관리자에게만 전달하며 로컬 개발용 공유 초대 방식이다. 공개 배포 전에는 일회성 초대로 교체해야 한다.",
+          "로컬 HTTP는 DJANGO_DEBUG=True. 공개 배포는 DEBUG=False와 HTTPS를 사용한다. 기본 세션 만료는 8시간이며 로그아웃 시 서버 세션을 삭제한다."
+        ],
+        "table": null,
+        "code": null
+      },
+      {
+        "title": "3. DB 적용과 서버 실행",
+        "paragraphs": [
+          "기존 nodeverse DB를 삭제하거나 초기화하지 않는다. migrate는 재현 가능한 스키마 변경과 일반 계정의 플레이어 이관을 수행한다."
+        ],
+        "table": null,
+        "code": [
+          ".\\.venv\\Scripts\\python manage.py migrate --plan",
+          ".\\.venv\\Scripts\\python manage.py migrate",
+          ".\\.venv\\Scripts\\python manage.py createsuperuser",
+          ".\\.venv\\Scripts\\python manage.py seed_analytics_demo",
+          ".\\.venv\\Scripts\\python manage.py seed_learning_demo",
+          ".\\.venv\\Scripts\\python manage.py runserver 127.0.0.1:8000"
+        ]
+      },
+      {
+        "title": "4. 이용 순서",
+        "paragraphs": [
+          "http://127.0.0.1:8000/staff/login/ 에서 관리자 로그인한다. 아직 계정이 없다면 초대 코드로 /staff/register/ 에서 가입하거나 createsuperuser를 사용한다.",
+          "이전 목록용 demo_operator는 비밀번호가 없어 로그인할 수 없다. 관리자 계정은 초대 코드 또는 createsuperuser로 생성한다. seed_analytics_demo는 이전 형식 데모, seed_learning_demo는 구조화된 문제 분석 데모를 추가하며 기존 이력을 수정하거나 중복 생성하지 않는다. 현재 MySQL에는 플레이어 11명, 세션 54개, 이벤트 360개, 문제 버전 6개, 문제 실행 18개, 풀이 시도 30개가 있다. 실제 Unity 수집은 아직 미연결이다.",
+          "서버 종료는 Ctrl+C. --noreload로 실행 중이면 코드·환경변수 변경 후 직접 재시작한다."
+        ],
+        "table": null,
+        "code": null
+      },
+      {
+        "title": "5. 테스트",
+        "paragraphs": [
+          "MYSQL_TEST_DATABASE에는 개발 DB와 다른 폐기 가능한 테스트 DB를 지정한다. 해당 테스트 DB에만 생성·삭제 권한이 필요하며 테스트 종료 후 삭제된다."
+        ],
+        "table": null,
+        "code": [
+          ".\\.venv\\Scripts\\python manage.py check",
+          ".\\.venv\\Scripts\\python manage.py test accounts telemetry -v 2",
+          ".\\.venv\\Scripts\\python manage.py makemigrations --check --dry-run"
+        ]
+      },
+      {
+        "title": "6. 파일 위치",
+        "paragraphs": [
+          "telemetry/models.py: 분석 모델. queries.py: 집계 기준. views.py: 관리자 HTML·읽기 API. telemetry/management/commands/seed_analytics_demo.py: 합성 데이터. accounts/backends.py: 관리자 전용 인증.",
+          "docs/sql/schema_reference.sql은 현재 MySQL의 스키마 참고 DDL이다. 직접 재실행하지 않고 migrate를 사용한다. docs/sql/analysis_queries.sql은 읽기 전용 분석 예시다. 문서는 PDF로 제공하며 docs/generate_docs.py로 재생성한다.",
+          "telemetry/recording.py는 신뢰된 서버 내부 기록·종료 서비스다. 전체 시간에서 일시정지 구간을 빼서 active_ms를 계산한다. 이 서비스는 외부 익명 수집 API로 노출되어 있지 않다. PDF 재생성은 python -m pip install -r docs/requirements.txt 설치 후 python docs/generate_docs.py로 실행한다."
+        ],
+        "table": null,
+        "code": null
+      }
+    ]
+  },
+  {
+    "file": "NODEVERSE_데이터셋_대시보드_설계.pdf",
+    "title": "관리자 분석 데이터셋·DB 설계",
+    "sections": [
+      {
+        "title": "1. 관리자와 플레이어의 분리",
+        "paragraphs": [
+          "accounts_user는 웹 관리자 인증에 사용한다. role=learner인 과거 계정은 보존하지만 인증할 수 없다. 신규 가입은 초대 코드를 통과한 관리자만 생성한다.",
+          "telemetry_player는 분석 대상이다. 로그인 비밀번호·관리자 권한이 없다. external_id는 신뢰할 수 있는 게임 수집 경로에서 매핑할 식별자이며, 사람의 실명이나 동일인임을 보장하지 않는다."
+        ],
+        "table": null,
+        "code": null
+      },
+      {
+        "title": "2. 분석 테이블",
+        "paragraphs": [],
+        "table": [
+          [
+            "테이블",
+            "주요 필드 / 역할"
+          ],
+          [
+            "telemetry_player",
+            "id(UUID), external_id(고유), display_name, source(live/demo), created_at"
+          ],
+          [
+            "telemetry_playsession",
+            "id, player_id(FK), topic, level, game_version, started_at, ended_at, status, duration_ms"
+          ],
+          [
+            "telemetry_behaviorevent",
+            "id(event UUID), session_id(FK), sequence, event_type, occurred_at, received_at, payload(JSON); run_id, attempt_id, operation, failure_reason, state_before/after, hint_id/step"
+          ],
+          [
+            "telemetry_learningtask",
+            "task_id + content_version 고유. 문제명·자료구조 정의"
+          ],
+          [
+            "telemetry_taskrun",
+            "문제를 한 번 시작한 실행. session_id, task_id, 시작·종료, 해결/포기/진행, active_ms, paused_ms"
+          ],
+          [
+            "telemetry_solveattempt",
+            "실행 안에서 반복하는 풀이 시도. run_id + number 고유, 시도 시작·종료, success/failure/abandoned/in_progress"
+          ]
+        ],
+        "code": null
+      },
+      {
+        "title": "3. 관계와 제약",
+        "paragraphs": [
+          "플레이어 1명에 여러 세션, 세션 1개에 여러 이벤트가 연결된다. 이벤트의 플레이어는 세션을 통해 결정하므로 이벤트에 별도의 player_id를 중복 저장하지 않는다.",
+          "external_id와 (session_id, sequence)는 고유해야 한다. 이벤트 UUID는 재전송 중복 방지의 기반이다. topic, status, event_type, source는 DB CHECK 제약을 갖는다. 외래키는 PROTECT로 삭제에 의한 분석 이력 손실을 막는다. 시간·유형 및 플레이어·세션 인덱스를 사용한다.",
+          "문제 정의 1개에 여러 실행, 실행 1개에 여러 시도를 연결한다. 이벤트는 실행과 시도를 선택적으로 참조한다. 이전 로그의 링크는 NULL로 보존하고 추측해서 소급 생성하지 않는다. 신규 이벤트는 내부 기록 서비스의 모델 검증을 통과해야 한다."
+        ],
+        "table": null,
+        "code": null
+      },
+      {
+        "title": "4. Django 기본 테이블",
+        "paragraphs": [
+          "django_session은 관리자 세션, django_migrations는 DB 변경 이력이다. django_content_type, auth_permission, auth_group, auth_group_permissions, accounts_user_groups, accounts_user_user_permissions는 Django 기본 권한 체계다. 현재 앱 접근 제어는 활성 관리자 role로 판단한다."
+        ],
+        "table": null,
+        "code": null
+      },
+      {
+        "title": "5. 이관과 목데이터",
+        "paragraphs": [
+          "마이그레이션 0002_preserve_legacy_players는 기존 일반 계정 5개의 UUID를 유지해 플레이어를 생성한다. 계정·비밀번호와 활성 상태는 수정하지 않는다. demo_ 접두사는 데모, 나머지는 실제 출처로 분류하지만 행동 이력이 생기는 것은 아니다.",
+          "seed_analytics_demo로 별도의 합성 플레이어 6명·세션 36개·이벤트 198개를 생성했다. 실제 데이터와 혼동하지 않도록 source=demo로 분리한다. 실제 게임 수집은 아직 없으며 기존 일반 계정에서 이관된 실제 출처 플레이어는 로그 0건일 수 있다.",
+          "추가 데모는 기존 플레이어 6명에 문제 실행 18개·풀이 시도 30개·세션 18개·새 이벤트 162개를 연결한다. 문제 3종을 버전 1.0/1.1로 분리하며, 첫 시도 해결·힌트 후 해결·반복 실패와 포기의 세 경우를 구성했다. 이전 이벤트 198개도 유지한다."
+        ],
+        "table": null,
+        "code": null
+      },
+      {
+        "title": "6. 지표 정의",
+        "paragraphs": [],
+        "table": [
+          [
+            "지표",
+            "계산 기준"
+          ],
+          [
+            "관찰 플레이어",
+            "선택한 조건·기간에 이벤트가 있는 서로 다른 플레이어 수"
+          ],
+          [
+            "플레이 세션",
+            "기간 내 시작한 세션 수"
+          ],
+          [
+            "성공률",
+            "성공/실패 연산 이벤트 기준. 이전 success/failure도 포함하며 문제 해결률과 구분한다."
+          ],
+          [
+            "힌트 사용",
+            "기간 내 hint 이벤트 수"
+          ],
+          [
+            "평균 완료 시간",
+            "기간 내 시작한 completed 세션 중 duration_ms가 있는 세션 평균 / 1000"
+          ]
+        ],
+        "code": null
+      },
+      {
+        "title": "7. 필터와 운영 범위",
+        "paragraphs": [
+          "기간은 Asia/Seoul 기준 시작일 00:00 이상, 종료일 다음 날 00:00 미만이다. 이벤트는 occurred_at, 세션은 started_at으로 필터링하므로 이전에 시작한 세션의 오늘 이벤트도 집계할 수 있다.",
+          "플레이어 목록의 전체 인원은 기간과 관계없이 검색·출처 조건에 해당하는 플레이어를 포함한다. 행동 유형 필터는 로그 탐색에만 적용하며 요약 지표의 분모를 바꾸지 않는다. 세션과 이벤트는 별도 집계하여 JOIN 중복을 방지한다.",
+          "현재는 조회·탐색 중심이다. 계정 일괄 삭제, AI 능력 판정, 결제·매출 차트는 제외한다. 이벤트 보관·집계 캐시·수집 인증은 실게임 연동 단계에서 결정한다."
+        ],
+        "table": null,
+        "code": null
+      },
+      {
+        "title": "8. 문제 지표의 분모와 기간 기준",
+        "paragraphs": [
+          "문제 지표는 선택 기간에 시작한 TaskRun 집단을 현재 결과까지 추적한다. 같은 실행의 후속 이벤트가 종료일 이후에 있어도 결과에 포함한다. 이벤트 탐색은 발생 시각으로 필터링하므로 두 값은 일치하지 않을 수 있다.",
+          "문제 해결률 = 해결된 실행 / 시작한 실행. 포기율 = abandoned 실행 / 시작한 실행. 진행 중 실행도 시작 분모에 포함한다. 재시도 실행은 SolveAttempt가 2개 이상인 실행이다.",
+          "평균 실제 풀이 시간은 해결된 실행 중 active_ms가 있는 값만 평균한다. 전체 경과 시간에서 일시정지·재개 구간을 빼고, 종료까지 재개되지 않은 정지도 종료 시각까지 뺀다. 중복 정지나 정지 없는 재개는 오류다."
+        ],
+        "table": null,
+        "code": null
+      },
+      {
+        "title": "9. 힌트와 실패 원인 분석",
+        "paragraphs": [
+          "실행별 첫 힌트 이후 새로 시작한 바로 다음 시도를 관찰한다. 그 시도의 결과가 success/failure인 경우만 분모에 넣는다. 힌트를 이미 진행 중인 시도에 소급 적용하지 않으며, 같은 실행에서 힌트가 여러 번 나와도 한 번만 평가한다.",
+          "힌트 뒤 성공은 관찰상의 연관이며 힌트의 인과 효과나 학습 능력의 증명이 아니다. 연산 실패는 operation과 failure_reason별로 분류한다. empty_stack, wrong_order, wrong_node 등은 데모용 코드이며 게임팀과 규약을 확정해야 한다.",
+          "이전 형식 로그는 행동 통계에는 남지만 문제·시도·힌트 후속 결과 계산에서는 제외한다. 데이터가 없으면 0%로 단정하지 않고 미정으로 표시한다."
+        ],
+        "table": null,
+        "code": null
+      },
+      {
+        "title": "10. 기록 검증과 데이터 품질",
+        "paragraphs": [
+          "record_event는 세션/실행/시도 소유 관계와 시간 범위를 검증한다. 같은 event_id의 같은 내용은 재전송으로 처리하고, 내용이 다르면 거부한다. 종료된 실행에 새 이벤트를 추가하지 않는다. (session_id, sequence) 유일 제약도 유지한다.",
+          "연산 실패는 연산과 실패 원인, 구조화된 힌트는 종류와 단계를 요구한다. 상태와 payload는 JSON 객체이며 내부 기록 서비스는 각각 16KB 제한과 비밀값 키 검사를 적용한다. 이 검사는 개인정보 분류 전체를 대신하지 않는다. 실제 수집 단계에서는 상태 필드를 명시적으로 허용해야 한다."
+        ],
+        "table": null,
+        "code": null
+      }
+    ]
+  },
+  {
+    "file": "NODEVERSE_Unity_통신_규약.pdf",
+    "title": "Unity·관리자 서버 데이터 규약",
+    "sections": [
+      {
+        "title": "1. 인증 경계",
+        "paragraphs": [
+          "게임 플레이어는 웹 회원가입·로그인을 하지 않는다. 관리자 브라우저만 세션·쿠키와 CSRF를 사용해 분석 콘솔에 로그인한다. Unity에서 관리자 아이디·비밀번호·초대 코드를 사용하지 않는다.",
+          "현재는 관리자용 읽기 API와 데모 데이터만 제공한다. 외부 게임 이벤트 수집 엔드포인트는 미구현이다. 공개 익명 요청의 player_id나 external_id를 그대로 신뢰하여 수집하지 않는다."
+        ],
+        "table": null,
+        "code": null
+      },
+      {
+        "title": "2. 관리자 API",
+        "paragraphs": [],
+        "table": [
+          [
+            "API",
+            "동작"
+          ],
+          [
+            "GET /api/auth/csrf",
+            "CSRF 토큰 및 쿠키 발급"
+          ],
+          [
+            "POST /api/auth/register",
+            "login_id, display_name, password, password_confirm, invitation_code"
+          ],
+          [
+            "POST /api/auth/login",
+            "관리자 login_id/password. 세션과 새 CSRF 토큰 발급"
+          ],
+          [
+            "GET /api/auth/me",
+            "현재 관리자 정보. 비밀번호·해시 제외"
+          ],
+          [
+            "POST /api/auth/logout",
+            "빈 JSON 객체와 CSRF 헤더. 서버 세션 삭제"
+          ],
+          [
+            "GET /api/admin/summary",
+            "전체 지표와 자료구조별 결과"
+          ],
+          [
+            "GET /api/admin/players",
+            "검색·집계·페이지 이동"
+          ],
+          [
+            "GET /api/admin/players/{UUID}",
+            "플레이어별 요약"
+          ],
+          [
+            "GET /api/admin/events",
+            "행동 목록·페이지 이동"
+          ]
+        ],
+        "code": null
+      },
+      {
+        "title": "3. 조회 규약",
+        "paragraphs": [
+          "start/end는 YYYY-MM-DD, source는 all/live/demo, topic은 stack/queue/tree, q는 표시 이름 또는 external_id 검색이다. 로그 탐색에는 event_type을 추가한다. page는 1부터 시작한다. 기본 기간은 오늘 포함 최근 7일이다.",
+          "플레이어는 페이지당 10명, 이벤트는 30건이다. API는 미인증 401, 필터 오류 400, 없는 플레이어 404를 반환한다. 잘못된 관리자 로그인은 401이며, CSRF 없는 변경 요청은 인증 검사보다 먼저 403이 된다."
+        ],
+        "table": null,
+        "code": null
+      },
+      {
+        "title": "4. 향후 게임 전송 형식",
+        "paragraphs": [
+          "JSON UTF-8 규약 2.0을 사용한다. 문제·시도 식별자, 연산, 실패 원인, 전후 상태와 힌트 필드를 추가했다. XML은 사용하지 않는다. behavior-event.schema.json과 예시는 향후 신뢰된 수집 경로용 계약이며 아직 외부 수집 엔드포인트는 없다."
+        ],
+        "table": null,
+        "code": [
+          "{\n  \"schema_version\": \"2.0\",\n  \"event_id\": \"e1b2a4d7-4522-4c7e-a0e7-a1b7f8b0c8c1\",\n  \"session_id\": \"8b90317e-e46a-4f47-8fc0-4f602dc3cabf\",\n  \"run_id\": \"54b30eec-9157-485d-a2f4-73fce5d2c8b5\",\n  \"attempt_id\": \"f1fd83bf-c168-4972-845c-a0242e860d20\",\n  \"sequence\": 3,\n  \"event_type\": \"operation_failed\",\n  \"occurred_at\": \"2026-11-05T03:20:00Z\",\n  \"operation\": \"pop\",\n  \"failure_reason\": \"empty_stack\",\n  \"state_before\": {\n    \"stack_size\": 0\n  },\n  \"state_after\": {\n    \"stack_size\": 0\n  },\n  \"payload\": {}\n}"
+        ]
+      },
+      {
+        "title": "5. 플레이어 식별과 재전송 정책",
+        "paragraphs": [
+          "향후 게임 수집 서버는 인증된 서비스·등록된 설치 또는 게임 플랫폼 식별자를 확인해 player와 session을 매핑하고 session_id를 발급해야 한다. 같은 기기와 같은 사람은 다르며, 여러 기기의 동일인 통합 정책은 아직 확정하지 않았다.",
+          "클라이언트 요청에는 player_id/user_id/source를 허용하지 않는다. 서버가 세션 소유자와 출처를 결정한다. event_id와 (session_id, sequence)로 중복·충돌을 구분하고, occurred_at은 클라이언트 시각, received_at은 서버 시각으로 저장한다. 세션 소유권·시간 범위·허용 payload를 검증해야 한다.",
+          "수집 경로의 서비스 인증, 서명·만료, 재시도 응답, 최대 요청 크기와 오프라인 큐 정책은 구현 전 확정한다. 행동 로그에 비밀번호·쿠키·관리자 비밀키를 포함하지 않는다. 현재 관리자 쿠키 인증을 게임 인증으로 재사용하지 않는다."
+        ],
+        "table": null,
+        "code": null
+      },
+      {
+        "title": "6. 이벤트 종류와 신뢰 경계",
+        "paragraphs": [
+          "task_started/completed/abandoned, attempt_started/failed/succeeded, operation_succeeded/failed, paused/resumed, hint를 사용한다. 시도·연산 이벤트에는 attempt_id, 모든 새 이벤트에는 run_id가 필요하다. 시도 결과와 연산 결과를 중복 합산하지 않는다.",
+          "문제 task_id/content_version은 서버의 LearningTask에 등록하고 실행을 시작할 때 연결한다. 이벤트에서 클라이언트가 임의로 문제 버전이나 player_id를 바꾸지 못하게 한다. source는 서버가 결정하며 게임이 demo/live를 지정하지 않는다.",
+          "event_id와 세션 내 sequence는 중복 수신을 확인한다. occurred_at은 UTC RFC3339 문자열이다. 내장 서비스는 검증과 DB 저장의 기반이고 실제 게임 수집 인증·오프라인 재전송·시간 동기화는 향후 연동 범위다. 관리자 브라우저 쿠키를 게임 인증으로 사용하지 않는다."
+        ],
+        "table": null,
+        "code": null
+      }
+    ]
+  }
+]

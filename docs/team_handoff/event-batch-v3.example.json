@@ -1,0 +1,29 @@
+{
+  "batch_id": "d23a534a-9fb5-4e63-9c82-43a491ce89fb",
+  "events": [
+    {
+      "schema_version": "3.0",
+      "event_id": "e1b2a4d7-4522-4c7e-a0e7-a1b7f8b0c8c1",
+      "session_id": "8b90317e-e46a-4f47-8fc0-4f602dc3cabf",
+      "run_id": "54b30eec-9157-485d-a2f4-73fce5d2c8b5",
+      "attempt_id": "cb80f3d9-1336-4cc1-b317-1c77102f985a",
+      "sequence": 3,
+      "event_type": "operation_failed",
+      "occurred_at": "2026-11-05T03:20:00Z",
+      "operation": "pop",
+      "failure_reason": "empty_stack",
+      "state_before": {
+        "stack_size": 0
+      },
+      "state_after": {
+        "stack_size": 0
+      },
+      "context": {
+        "step_id": "pick-top",
+        "game_version": "0.1.0",
+        "platform": "windows",
+        "input_method": "mouse"
+      }
+    }
+  ]
+}

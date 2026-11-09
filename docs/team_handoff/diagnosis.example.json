@@ -1,0 +1,32 @@
+{
+  "diagnosis_id": "42ee28ad-74bc-4f0c-b71d-ae8112ec7632",
+  "status": "completed",
+  "scope": {
+    "task_id": "stack-03",
+    "content_version": "1.1",
+    "source": "demo"
+  },
+  "window_start": "2026-11-01T00:00:00Z",
+  "window_end": "2026-11-06T00:00:00Z",
+  "input_snapshot_id": "snapshot-demo-001",
+  "metric_version": "1.0",
+  "rule_version": "0.1",
+  "prompt_version": "0.1",
+  "model_id": "example-model",
+  "findings": [
+    {
+      "code": "repeated_empty_stack",
+      "evidence": {
+        "operation_failed": 8,
+        "observed_runs": 12
+      },
+      "suggestion": "빈 스택 상태와 pop 불가 사유를 시각적으로 안내한다."
+    }
+  ],
+  "human_review_status": "pending",
+  "requested_by": "a0f658a3-65ab-41e2-812c-d7f016ce8452",
+  "created_at": "2026-11-05T04:00:00Z",
+  "completed_at": "2026-11-05T04:00:10Z",
+  "as_of": "2026-11-05T03:59:00Z",
+  "ai_status": "completed"
+}
