@@ -67,7 +67,7 @@ class MongoAnalyticsTests(TestCase):
         for path in ['/staff/','/staff/?scope=game&topic=stack','/staff/?scope=player',
                      '/staff/?scope=player&player_id='+str(self.member.pk),'/staff/players/',
                      '/staff/players/'+str(self.member.pk)+'/', '/staff/events/', '/staff/guide/']:
-            self.assertEqual(self.client.get(path).status_code,200,path)
+            self.assertEqual(self.client.get(path, follow=True).status_code,200,path)
         visuals=self.client.get('/api/admin/visuals').json()
         self.assertEqual(visuals['runs'],1)
         self.assertEqual(len(visuals['heatmap']),168)
@@ -80,6 +80,84 @@ class MongoAnalyticsTests(TestCase):
         csv=self.client.get('/staff/export/').content.decode('utf-8-sig')
         self.assertEqual(len(csv.strip().splitlines()),2)
         self.assertIn('stack-01',csv)
+
+    def test_catalog_filters_preserve_runs_events_and_exports(self):
+        from .catalog import CATALOG, AREAS, game_for
+        self.assertEqual(len(CATALOG), 24)
+        self.assertEqual([sum(g['area'] == a for g in CATALOG.values()) for a, _ in AREAS], [10, 6, 4, 4])
+        self.assertEqual(game_for('st06')['area'], 'algorithms')
+        self.assertEqual(game_for('DS09')['area'], 'structures')
+        self.assertIsNone(game_for('stack-pop-test'))
+        self.assertIsNone(game_for('ST03-extra'))
+        # Even a legacy tree topic must not override the actual execution ID.
+        collection(LearningTask).update_one({'_id': str(self.problem.pk)}, {'$set': {'task_id': 'st06'}})
+        self.solve()
+        other_session = create_record(PlaySession(player=self.member, topic='stack', started_at=self.now, status='in_progress'))[0]
+        other_problem = create_record(LearningTask(task_id='SQL01', content_version='1', title='SQL', topic='stack'))[0]
+        other_run = create_record(TaskRun(session=other_session, task=other_problem, started_at=self.now, status='in_progress'))[0]
+        other_attempt = create_record(SolveAttempt(run=other_run, number=1, started_at=self.now, outcome='in_progress'))[0]
+        record_event(id=uuid.uuid4(), session=other_session, run=other_run, attempt=other_attempt,
+                     sequence=6, event_type='operation_succeeded', operation='select', occurred_at=self.now+timedelta(seconds=10))
+        result = self.client.get('/api/admin/summary?category=algorithms').json()
+        self.assertEqual(result['learning']['runs'], 1)
+        self.assertEqual(result['learning']['completed'], 1)
+        self.assertEqual(result['summary']['total'], 5)
+        result = self.client.get('/api/admin/summary?category=sql&game_id=SQL01').json()
+        self.assertEqual(result['learning']['runs'], 1)
+        self.assertEqual(result['learning']['completed'], 0)
+        self.assertEqual(result['summary']['total'], 1)
+        self.assertEqual(self.client.get('/api/admin/summary?category=structures').json()['learning']['runs'], 0)
+        self.assertEqual(self.client.get('/api/admin/summary?category=sql&game_id=ST06').status_code, 400)
+        self.assertEqual(self.client.get('/api/admin/summary?game_id=NOT_A_GAME').status_code, 400)
+        self.assertEqual(self.client.get('/api/admin/summary?game_id=ST06&task_id=SQL01').json()['learning']['runs'], 0)
+        text = self.client.get('/staff/export/?category=algorithms&game_id=ST06').content.decode('utf-8-sig')
+        self.assertIn('st06', text)
+        self.assertNotIn('SQL01', text)
+        response = self.client.get('/staff/?scope=game')
+        catalog = response.context['catalog']
+        self.assertEqual(catalog['observed'], 2)
+        self.assertEqual(catalog['totals']['in_progress'], 1)
+        self.assertEqual(catalog['totals']['completion_rate'], 50)
+        sql = next(g for g in catalog['games'] if g['code'] == 'SQL01')
+        self.assertEqual(sql['operation_rate'], 100)
+        self.assertEqual(sql['completion_rate'], 0)
+        self.assertContains(response, 'data-game-code=', count=24)
+        response = self.client.get('/staff/?scope=game&category=algorithms')
+        self.assertContains(response, 'data-game-code=', count=6)
+
+    def test_catalog_unknown_ids_and_missing_metrics_are_not_guessed(self):
+        self.event('operation_succeeded', 1, 1, operation='pop')
+        response = self.client.get('/staff/')
+        catalog = response.context['catalog']
+        self.assertEqual(catalog['observed'], 0)
+        self.assertEqual(catalog['unmapped']['runs'], 1)
+        self.assertEqual(catalog['totals']['in_progress'], 1)
+        self.assertEqual(catalog['totals']['completion_rate'], 0)
+        self.assertIsNone(catalog['totals']['avg_seconds'])
+        self.assertContains(response, '완료·포기 판정이 아직 없습니다')
+        self.assertContains(response, 'stack-01')
+        result = self.client.get('/api/admin/visuals').json()
+        self.assertEqual(next(t for t in result['topics'] if t['label'] == '미분류')['n'], 1)
+        self.assertEqual(sum(t['n'] for t in result['topics']), 1)
+
+    def test_navigation_separates_overview_games_and_player_detail(self):
+        overview = self.client.get('/staff/')
+        self.assertNotContains(overview, 'class="analysis-tabs"')
+        self.assertNotContains(overview, 'data-game-code=')
+        self.assertNotContains(overview, 'class="chart-more')
+        self.assertContains(overview, 'aria-current="page"', count=1)
+        games = self.client.get('/staff/games/')
+        self.assertContains(games, 'data-game-code=', count=24)
+        self.assertNotContains(games, 'primary-charts')
+        self.assertContains(games, 'aria-current="page"', count=1)
+        detail = self.client.get('/staff/games/?game_id=ST03')
+        self.assertContains(detail, '최근 작업 복구실')
+        self.assertContains(detail, 'class="chart-more')
+        self.assertNotContains(detail, 'data-game-code=')
+        self.assertContains(detail, 'aria-current="page"', count=1)
+        self.assertRedirects(self.client.get('/staff/?scope=player'), '/staff/players/')
+        self.assertRedirects(self.client.get('/staff/?scope=player&player_id=' + str(self.member.pk) + '&source=live'),
+                             '/staff/players/' + str(self.member.pk) + '/?source=live')
 
     def test_idempotency_conflict_and_reference_validation(self):
         record_id=uuid.uuid4()

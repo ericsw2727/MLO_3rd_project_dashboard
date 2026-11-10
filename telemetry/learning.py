@@ -58,7 +58,7 @@ def learning_report(form, players):
     failures = defaultdict(int)
     for operation, reason in failure_rows:
         failures[(operation or 'unknown', reason or 'unknown')] += 1
-    return {'runs': len(runs), 'completed': completed, 'abandoned': abandoned, 'retry_runs': retry_runs,
+    return {'runs': len(runs), 'completed': completed, 'abandoned': abandoned, 'in_progress': sum(r.status == 'in_progress' for r in runs), 'retry_runs': retry_runs,
             'completion_rate': round(100 * completed / len(runs), 1) if runs else None,
             'avg_active_seconds': round(sum(active_times)/len(active_times)/1000, 1) if active_times else None,
             'hint_evaluable': evaluable, 'hint_next_success': helped,

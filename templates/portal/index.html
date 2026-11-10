@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="일곱 개의 섬으로 연결된 코딩 탐험. NODEVERSE의 세계와 소개 영상, 브라우저 인터랙티브 미니게임을 만나보세요.">
+  <title>NODEVERSE — 연결된 배움의 세계</title>
+  <link rel="stylesheet" href="/static/portal/style.css">
+  <link rel="stylesheet" href="/static/portal/island-games.css">
+  <link rel="stylesheet" href="/static/portal/showcase.css">
+  <link rel="stylesheet" href="/static/portal/cobot-chat.css">
+</head>
+<body>
+  <header class="header">
+    <a class="brand" href="/">
+      <svg viewBox="0 0 42 42" aria-hidden="true">
+        <path d="M21 6 6 34h30Z"/>
+        <circle cx="21" cy="6" r="5"/>
+        <circle cx="6" cy="34" r="5"/>
+        <circle cx="36" cy="34" r="5"/>
+      </svg>
+      <span>NODEVERSE<small>연결된 배움의 세계</small></span>
+    </a>
+    <nav aria-label="주 메뉴">
+      <a href="#world">세계 탐험</a>
+      <a href="#stages">자료구조 섬 <span class="tiny">10 STAGES</span></a>
+      <a href="#demo">웹 체험판 <span class="tiny">PLAY</span></a>
+      <a href="#film">소개 영상</a>
+      <a href="/staff/">관리자 로그인</a>
+    </nav>
+    <a class="button dark compact" href="#demo">체험 플레이 <span>↓</span></a>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero">
+      <img src="/static/portal/assets/world.webp" alt="청록빛 바다 위 일곱 섬이 다리로 연결된 NODEVERSE 전체 지도" fetchpriority="high">
+      <div class="hero-shade"></div>
+      <div class="hero-copy">
+        <p class="eyebrow light">EXPLORE. CONNECT. UNDERSTAND.</p>
+        <h1>배움이 모험이 되는<br>작은 세계.</h1>
+        <p>자료구조부터 알고리즘, 데이터까지.<br>섬과 섬을 건너며 지식을 연결해 보세요.</p>
+        <div class="hero-actions">
+          <a class="button gold" href="#demo">🎮 브라우저에서 바로 체험하기 <span>↓</span></a>
+          <a class="film-link" href="#film"><span class="play-circle">▶</span> 21초 실제 플레이 영상</a>
+        </div>
+      </div>
+      <div class="hero-bottom">
+        <span>01 — WORLD OF NODEVERSE</span>
+        <span>스크롤해서 탐험하기 ↓</span>
+      </div>
+    </section>
+
+    <!-- INTRO -->
+    <section class="intro section">
+      <p class="eyebrow">LEARNING, MADE TANGIBLE</p>
+      <h2>외우던 개념을,<br><em>걸어서 이해하는 경험.</em></h2>
+      <div>
+        <p>줄지어 놓인 배열, 서로 연결된 노드, 차곡차곡 쌓이는 스택. 추상적인 개념을 작은 섬의 풍경으로 만나보세요.</p>
+        <p class="muted">NODEVERSE는 코딩과 데이터를 탐험하는 학습 게임입니다. 아래에서 자료구조 섬 미니게임을 직접 플레이해보고 나만의 여정을 시작하세요.</p>
+        <div class="facts">
+          <span><b>7</b>개의 연결된 섬</span>
+          <span><b>3</b>단계의 난이도</span>
+          <span><b>실시간</b> 데이터 연동</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- WORLD -->
+    <section id="world" class="world section">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">CHOOSE YOUR NEXT ISLAND</p>
+          <h2>어떤 섬부터 만나볼까요?</h2>
+        </div>
+        <span class="subnote">이미지는 세계관·스테이지 콘셉트입니다.</span>
+      </div>
+      <div class="island-layout">
+        <div class="island-nav" role="tablist" aria-label="탐험할 섬">
+          <button role="tab" aria-selected="true" data-island="intro"><span>01</span>입문 섬 <b>↗</b></button>
+          <button role="tab" aria-selected="false" data-island="structures"><span>02</span>자료구조 섬 <b>↗</b></button>
+          <button role="tab" aria-selected="false" data-island="algorithms"><span>03</span>알고리즘 섬 <b>↗</b></button>
+          <button role="tab" aria-selected="false" data-island="sql"><span>04</span>SQL 섬 <b>↗</b></button>
+          <button role="tab" aria-selected="false" data-island="data"><span>05</span>데이터 탐험 섬 <b>↗</b></button>
+          <button role="tab" aria-selected="false" data-island="challenge"><span>06</span>종합 도전 섬 <b>↗</b></button>
+        </div>
+        <article class="island-stage" role="tabpanel" aria-label="선택한 섬 소개">
+          <img id="island-image" src="/static/portal/assets/intro.webp" alt="입문 섬 콘셉트" loading="lazy">
+          <div class="island-caption">
+            <div>
+              <p id="island-tag" class="eyebrow light">THE FIRST STEP</p>
+              <h3 id="island-title">모든 모험은, 작은 질문에서.</h3>
+              <p id="island-desc">변수와 조건, 반복. 첫 번째 코딩 개념을 발견하는 섬입니다.</p>
+            </div>
+            <span id="island-number">01 / 06</span>
+          </div>
+        </article>
+      </div>
+      <p class="hub-note">◇ <b>메인 섬</b>은 모든 여정이 시작되는 곳. 여섯 학습 섬으로 이어지는 다리를 만나보세요.</p>
+    </section>
+
+    <!-- 10 DATA STRUCTURE MINI-GAMES SHOWCASE -->
+    <section id="stages" class="stages-section section">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">10 DATA STRUCTURE MINI-GAMES</p>
+          <h2>자료구조 섬의 <em>10가지 스테이지</em></h2>
+        </div>
+        <span class="subnote">스테이지 소개를 둘러보고, 아래에서 로봇으로 상자를 옮기는 3D 미니게임을 직접 플레이해 보세요.</span>
+      </div>
+
+      <!-- Category Filter Tabs -->
+      <div class="stage-filters" role="tablist">
+        <button class="stage-filter-btn active" data-filter="all">전체 (10)</button>
+        <button class="stage-filter-btn" data-filter="linear">선형 구조 (4)</button>
+        <button class="stage-filter-btn" data-filter="tree">트리 & 계층 (3)</button>
+        <button class="stage-filter-btn" data-filter="advanced">그래프 & 고급 (3)</button>
+      </div>
+
+      <!-- Stage Cards Grid -->
+      <div class="stages-grid">
+        <!-- ST01: 배열 -->
+        <article class="stage-card" data-category="linear">
+          <div class="stage-card-thumb">
+            <img src="/static/portal/assets/stages/st01.png" alt="ST01 배열 미니게임" loading="lazy">
+            <span class="stage-id-badge">ST01</span>
+            <span class="stage-cat-tag">배열 (Array)</span>
+          </div>
+          <div class="stage-card-body">
+            <div class="stage-card-header">
+              <h3>순서가 있는 보관소</h3>
+              <img class="npc-mini-avatar" src="/static/portal/assets/npcs/npc01.png" alt="창고 관리인" title="NPC 창고 관리인">
+            </div>
+            <p class="stage-desc">연속된 인덱스 공간에 상자를 채우고 빈틈없이 밀착시키는 배열의 기본 동작 원리를 배웁니다.</p>
+            <div class="stage-pills">
+              <span class="stage-pill">O(1) 인덱스 접근</span>
+              <span class="stage-pill">연속 메모리</span>
+              <span class="stage-pill">원소 이동</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- ST02: 연결 리스트 -->
+        <article class="stage-card" data-category="linear">
+          <div class="stage-card-thumb">
+            <img src="/static/portal/assets/stages/st02.png" alt="ST02 연결 리스트 미니게임" loading="lazy">
+            <span class="stage-id-badge">ST02</span>
+            <span class="stage-cat-tag">연결 리스트 (Linked List)</span>
+          </div>
+          <div class="stage-card-body">
+            <div class="stage-card-header">
+              <h3>끊어진 운송로</h3>
+              <img class="npc-mini-avatar" src="/static/portal/assets/npcs/npc02.png" alt="철로 기술자" title="NPC 철로 기술자">
+            </div>
+            <p class="stage-desc">끊어진 화물 열차 레일을 포인터 케이블로 올바른 순서대로 연결하여 HEAD부터 null까지 잇습니다.</p>
+            <div class="stage-pills">
+              <span class="stage-pill">Node & Pointer</span>
+              <span class="stage-pill">HEAD 이동</span>
+              <span class="stage-pill">중간 삽입/삭제</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- ST03: 스택 -->
+        <article class="stage-card" data-category="linear">
+          <div class="stage-card-thumb">
+            <img src="/static/portal/assets/stages/st03.png" alt="ST03 스택 미니게임" loading="lazy">
+            <span class="stage-id-badge">ST03</span>
+            <span class="stage-cat-tag">스택 (Stack)</span>
+          </div>
+          <div class="stage-card-body">
+            <div class="stage-card-header">
+              <h3>최근 작업 복구실</h3>
+              <img class="npc-mini-avatar" src="/static/portal/assets/npcs/npc03.png" alt="기록 보관원" title="NPC 기록 보관원">
+            </div>
+            <p class="stage-desc">가장 마지막에 넣은 기록부터 꺼내는 후입선출(LIFO) 원리를 통해 되돌리기(Undo) 스택을 완성합니다.</p>
+            <div class="stage-pills">
+              <span class="stage-pill">LIFO 후입선출</span>
+              <span class="stage-pill">PUSH / POP</span>
+              <span class="stage-pill">Top 포인터</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- ST04: 큐 / 덱 -->
+        <article class="stage-card" data-category="linear">
+          <div class="stage-card-thumb">
+            <img src="/static/portal/assets/stages/st04.png" alt="ST04 큐/덱 미니게임" loading="lazy">
+            <span class="stage-id-badge">ST04</span>
+            <span class="stage-cat-tag">큐 & 덱 (Queue / Deque)</span>
+          </div>
+          <div class="stage-card-body">
+            <div class="stage-card-header">
+              <h3>접수 순서 안내소</h3>
+              <img class="npc-mini-avatar" src="/static/portal/assets/npcs/npc04.png" alt="접수 담당자" title="NPC 접수 담당자">
+            </div>
+            <p class="stage-desc">FRONT와 REAR 게이트를 조작하여 먼저 온 손님을 먼저 안내(FIFO)하거나 양방향 덱으로 응급 손님을 우선 처리합니다.</p>
+            <div class="stage-pills">
+              <span class="stage-pill">FIFO 선입선출</span>
+              <span class="stage-pill">FRONT / REAR</span>
+              <span class="stage-pill">양방향 덱(Deque)</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- ST05: 해시 테이블 -->
+        <article class="stage-card" data-category="advanced">
+          <div class="stage-card-thumb">
+            <img src="/static/portal/assets/stages/st05.png" alt="ST05 해시 테이블 미니게임" loading="lazy">
+            <span class="stage-id-badge">ST05</span>
+            <span class="stage-cat-tag">해시 (Hash Table)</span>
+          </div>
+          <div class="stage-card-body">
+            <div class="stage-card-header">
+              <h3>이름으로 찾는 물품대장</h3>
+              <img class="npc-mini-avatar" src="/static/portal/assets/npcs/npc05.png" alt="분류사" title="NPC 분류사">
+            </div>
+            <p class="stage-desc">문자열 키(Key)를 해시 함수에 통과시켜 버킷 주소를 구하고, 해시 충돌(Collision)을 해결하는 매핑 기술을 체험합니다.</p>
+            <div class="stage-pills">
+              <span class="stage-pill">Key-Value 매핑</span>
+              <span class="stage-pill">해시 함수</span>
+              <span class="stage-pill">충돌 체이닝</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- ST06: 이진 트리 -->
+        <article class="stage-card" data-category="tree">
+          <div class="stage-card-thumb">
+            <img src="/static/portal/assets/stages/st06.png" alt="ST06 이진 트리 미니게임" loading="lazy">
+            <span class="stage-id-badge">ST06</span>
+            <span class="stage-cat-tag">이진 트리 (Binary Tree)</span>
+          </div>
+          <div class="stage-card-body">
+            <div class="stage-card-header">
+              <h3>계층형 자료실</h3>
+              <img class="npc-mini-avatar" src="/static/portal/assets/npcs/npc06.png" alt="사서" title="NPC 사서">
+            </div>
+            <p class="stage-desc">뿌리(Root) 노드에서 출발하여 왼쪽과 오른쪽 가지로 뻗어나가는 계층적 자료구조와 전위/중위/후위 순회를 학습합니다.</p>
+            <div class="stage-pills">
+              <span class="stage-pill">Root / Leaf</span>
+              <span class="stage-pill">부모-자식 노드</span>
+              <span class="stage-pill">트리 순회(Traversal)</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- ST07: 이진 탐색 트리 (BST) -->
+        <article class="stage-card" data-category="tree">
+          <div class="stage-card-thumb">
+            <img src="/static/portal/assets/stages/st07.png" alt="ST07 이진 탐색 트리 미니게임" loading="lazy">
+            <span class="stage-id-badge">ST07</span>
+            <span class="stage-cat-tag">이진 탐색 트리 (BST)</span>
+          </div>
+          <div class="stage-card-body">
+            <div class="stage-card-header">
+              <h3>갈림길 창고</h3>
+              <img class="npc-mini-avatar" src="/static/portal/assets/npcs/npc07.png" alt="보안관" title="NPC 보안관">
+            </div>
+            <p class="stage-desc">현재 값보다 '작으면 왼쪽, 크면 오른쪽' 규칙을 지키며 원하는 데이터를 O(log N) 속도로 빠르게 찾아내는 탐색 퍼즐입니다.</p>
+            <div class="stage-pills">
+              <span class="stage-pill">이진 탐색</span>
+              <span class="stage-pill">O(log N) 효율</span>
+              <span class="stage-pill">정렬된 트리</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- ST08: 힙 -->
+        <article class="stage-card" data-category="tree">
+          <div class="stage-card-thumb">
+            <img src="/static/portal/assets/stages/st08.png" alt="ST08 힙 미니게임" loading="lazy">
+            <span class="stage-id-badge">ST08</span>
+            <span class="stage-cat-tag">힙 & 우선순위 큐 (Heap)</span>
+          </div>
+          <div class="stage-card-body">
+            <div class="stage-card-header">
+              <h3>긴급 작업 배정실</h3>
+              <img class="npc-mini-avatar" src="/static/portal/assets/npcs/npc08.png" alt="작업 반장" title="NPC 작업 반장">
+            </div>
+            <p class="stage-desc">가장 긴급한 작업이 항상 맨 위(Root)에 오도록 노드를 위아래로 교환(Heapify)하는 완전 이진 트리 힙을 구현합니다.</p>
+            <div class="stage-pills">
+              <span class="stage-pill">최대/최소 힙</span>
+              <span class="stage-pill">우선순위 큐</span>
+              <span class="stage-pill">Heapify 재구조화</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- ST09: 그래프 -->
+        <article class="stage-card" data-category="advanced">
+          <div class="stage-card-thumb">
+            <img src="/static/portal/assets/stages/st09.png" alt="ST09 그래프 미니게임" loading="lazy">
+            <span class="stage-id-badge">ST09</span>
+            <span class="stage-cat-tag">그래프 (Graph)</span>
+          </div>
+          <div class="stage-card-body">
+            <div class="stage-card-header">
+              <h3>연결망 조사실</h3>
+              <img class="npc-mini-avatar" src="/static/portal/assets/npcs/npc09.png" alt="통신 분석가" title="NPC 통신 분석가">
+            </div>
+            <p class="stage-desc">여러 지점(정점)과 경로(간선)로 복잡하게 얽힌 통신 네트워크에서 최단 경로와 연결 상태를 탐색(BFS/DFS)합니다.</p>
+            <div class="stage-pills">
+              <span class="stage-pill">정점 & 간선</span>
+              <span class="stage-pill">인접 행렬/리스트</span>
+              <span class="stage-pill">너비/깊이 우선 탐색</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- ST10: 통합 실전 -->
+        <article class="stage-card" data-category="advanced">
+          <div class="stage-card-thumb">
+            <img src="/static/portal/assets/stages/st10.png" alt="ST10 통합 실전 미니게임" loading="lazy">
+            <span class="stage-id-badge">ST10</span>
+            <span class="stage-cat-tag">통합 실전 (Integrated)</span>
+          </div>
+          <div class="stage-card-body">
+            <div class="stage-card-header">
+              <h3>학습 지원 센터</h3>
+              <img class="npc-mini-avatar" src="/static/portal/assets/npcs/npc00.png" alt="총괄 가이드" title="NPC 총괄 가이드">
+            </div>
+            <p class="stage-desc">앞서 배운 모든 자료구조를 조합하여 복합 시스템의 병목 현상을 해결하는 최종 종합 챌린지입니다.</p>
+            <div class="stage-pills">
+              <span class="stage-pill">복합 자료구조</span>
+              <span class="stage-pill">성능 최적화</span>
+              <span class="stage-pill">마스터 챌린지</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+
+    <section id="demo" class="play-islands-section section" aria-labelledby="play-islands-title">
+      <div class="play-islands-container">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">PLAYABLE 3-ISLAND MINI-GAME TRIAL</p>
+            <h2 id="play-islands-title">3개 섬의 핵심 미니게임을 <em>직접 플레이해보세요.</em></h2>
+          </div>
+          <span class="subnote">팀 최신 빌드(자료구조 섬 · 알고리즘 섬 · SQL 섬)의 실제 데이터와 규칙을 그대로 옮긴 웹 체험판입니다.</span>
+        </div>
+
+        <!-- 3 Island Selector Tabs -->
+        <div class="island-demo-tabs" role="tablist" aria-label="체험할 섬 미니게임 선택">
+          <button type="button" class="island-demo-tab active" data-island-tab="ds" role="tab" aria-selected="true">
+            <img class="island-demo-tab-thumb" src="/static/portal/assets/stages/st03.png" alt="자료구조 섬 ST03">
+            <div class="island-demo-tab-info">
+              <span class="island-demo-tab-badge">01 · 자료구조 섬 (ST03)</span>
+              <strong class="island-demo-tab-title">최근 작업 복구실</strong>
+              <span class="island-demo-tab-sub">스택(Stack) · LIFO 상자 운반</span>
+            </div>
+            <span class="island-demo-tab-stars" aria-label="클리어 별점">☆☆☆</span>
+          </button>
+
+          <button type="button" class="island-demo-tab" data-island-tab="algo" role="tab" aria-selected="false">
+            <img class="island-demo-tab-thumb" src="/static/portal/assets/stages/alg01.png" alt="알고리즘 섬 ALG01">
+            <div class="island-demo-tab-info">
+              <span class="island-demo-tab-badge">02 · 알고리즘 섬 (ALG01)</span>
+              <strong class="island-demo-tab-title">순서 맞춤 작업대</strong>
+              <span class="island-demo-tab-sub">버블 · 선택 · 삽입 정렬 실험실</span>
+            </div>
+            <span class="island-demo-tab-stars" aria-label="클리어 별점">☆☆☆</span>
+          </button>
+
+          <button type="button" class="island-demo-tab" data-island-tab="sql" role="tab" aria-selected="false">
+            <img class="island-demo-tab-thumb" src="/static/portal/assets/stages/sql01.png" alt="SQL 섬 SQL01">
+            <div class="island-demo-tab-info">
+              <span class="island-demo-tab-badge">03 · SQL 섬 (SQL01)</span>
+              <strong class="island-demo-tab-title">필요한 칸만 꺼내기</strong>
+              <span class="island-demo-tab-sub">5×5 서랍 색칠 · SELECT × WHERE</span>
+            </div>
+            <span class="island-demo-tab-stars" aria-label="클리어 별점">☆☆☆</span>
+          </button>
+        </div>
+
+        <!-- Authentic Godot Stage Shell -->
+        <div class="godot-stage-shell" id="godot-stage-shell">
+          <!-- Top HUD Bar -->
+          <div class="godot-hud-top">
+            <div class="godot-title-box">
+              <span class="godot-stage-id" id="godot-stage-id">ST03</span>
+              <strong class="godot-stage-name" id="godot-stage-name">최근 작업 복구실 (스택 · LIFO)</strong>
+            </div>
+            <div class="godot-mission-plate">
+              <span class="godot-mission-tag">MISSION</span>
+              <span id="godot-mission-text">A → B를 타워에 쌓고, 확인대(Peek)에서 Top을 확인한 뒤 B → A 순서로 작업대에 올리세요.</span>
+            </div>
+            <div class="godot-level-tabs" id="godot-level-tabs" role="tablist" aria-label="단계 선택"></div>
+          </div>
+
+          <!-- NPC Dialogue & Toast Bar -->
+          <div class="godot-npc-bar">
+            <img class="godot-npc-avatar" id="godot-npc-avatar" src="/static/portal/assets/npcs/npc03.png" alt="담당 NPC">
+            <div class="godot-npc-content">
+              <span class="godot-npc-name" id="godot-npc-name">[NPC · 복구실 장인]</span>
+              <p class="godot-npc-speech" id="godot-npc-speech">입고 레일에서 상자를 집어 스택 타워에 쌓아 보세요!</p>
+            </div>
+          </div>
+
+          <!-- Main Split View: Left Interactive Field + Right Live Code / Result Panel -->
+          <div class="godot-stage-main">
+            <div class="godot-field" id="godot-field">
+              <div class="godot-field-inner" id="godot-field-inner"></div>
+            </div>
+            <aside class="godot-code-panel" id="godot-code-panel" aria-label="실시간 코드 및 데이터 상태"></aside>
+          </div>
+
+          <!-- Bottom Controls Bar -->
+          <div class="godot-hud-bottom">
+            <div class="godot-controls-guide" id="godot-controls-guide">
+              마우스 클릭 또는 <kbd>WASD</kbd> 이동 · <kbd>E</kbd> 상호작용 · <kbd>Z</kbd> 되돌리기 · <kbd>R</kbd> 다시 시작
+            </div>
+            <div class="godot-action-btns">
+              <button type="button" class="godot-btn" id="godot-btn-undo">↩ Z · 되돌리기</button>
+              <button type="button" class="godot-btn gold" id="godot-btn-hint">💡 F · 힌트 보기</button>
+              <button type="button" class="godot-btn" id="godot-btn-reset">↻ R · 다시 시작</button>
+              <button type="button" class="godot-btn green" id="godot-btn-next">다음 단계 / 섬 →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FILM -->
+    <section id="film" class="film section">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">A LITTLE WINDOW INTO OUR WORLD</p>
+          <h2>당신의 다음 모험을 미리 만나세요.</h2>
+        </div>
+        <span class="film-duration">IN-GAME PLAY · 00:21</span>
+      </div>
+      <video controls playsinline preload="none" poster="/static/portal/assets/world.webp" aria-label="NODEVERSE 21초 실제 인게임 플레이 영상">
+        <source src="/static/portal/assets/nodeverse-intro.mp4" type="video/mp4">
+        이 브라우저에서는 영상 재생을 지원하지 않습니다.
+      </video>
+      <div class="film-foot">
+        <p>실제 NODEVERSE 게임창 안에서 3D 연결섬 월드 탐험과 NPC 대화, 자료구조·알고리즘·SQL·데이터 실습 스테이지를 직접 플레이하는 인게임 소개 영상입니다.</p>
+        <a href="/static/portal/assets/nodeverse-intro.mp4" download>영상 다운로드 ↓</a>
+      </div>
+    </section>
+
+    <!-- JOURNEY -->
+    <section class="journey section">
+      <div>
+        <p class="eyebrow">YOUR OWN PACE</p>
+        <h2>처음이어도,<br>더 깊이 알고 싶어도.</h2>
+        <p>지금의 나에게 맞는 난이도로<br>여정을 시작하세요.</p>
+      </div>
+      <ol class="levels">
+        <li>
+          <span>01</span>
+          <div>
+            <small>NOVICE</small>
+            <h3>호기심 많은 탐험가</h3>
+            <p>일상 속 비유와 함께 기초 개념을 만나보세요.</p>
+          </div>
+        </li>
+        <li>
+          <span>02</span>
+          <div>
+            <small>DEVELOPER</small>
+            <h3>원리를 찾는 개발자</h3>
+            <p>구조와 동작을 살펴보며 이해의 깊이를 더하세요.</p>
+          </div>
+        </li>
+        <li>
+          <span>03</span>
+          <div>
+            <small>ARCHITECT</small>
+            <h3>세계를 잇는 설계자</h3>
+            <p>각각의 지식을 연결해 더 큰 문제에 도전하세요.</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <!-- GITHUB & OPEN SOURCE (Replaced old download button) -->
+    <section class="download section" id="download">
+      <div class="crystal" aria-hidden="true">◇</div>
+      <p class="eyebrow light">THE NEXT CHAPTER IS YOURS</p>
+      <h2>더 넓은 세계를 만나보세요.</h2>
+      <p>3D 연결섬 풀버전 프로젝트와 코드는 GitHub에 투명하게 공개되어 있습니다.</p>
+      <a class="button gold" href="https://github.com/junbum8398-blip/nodeverse-game" target="_blank" rel="noopener noreferrer">GitHub 프로젝트 둘러보기 <span>↗</span></a>
+      <p class="download-note">Godot 4.7 3D 메타버스 + 2D 자료구조 10종 미니게임 + 실시간 데이터 파이프라인</p>
+    </section>
+  </main>
+
+  <!-- FLOATING ROBOT COMPANION -->
+  <aside id="robot-companion" class="robot-companion" aria-label="코봇 AI 안내 도우미">
+    <div class="robot-avatar-wrapper" id="robot-avatar-btn" role="button" tabindex="0" title="코봇과 채팅하기">
+      <img src="/static/portal/assets/robot.png" alt="귀여운 도트 로봇 마스코트 코봇" class="robot-avatar-img">
+      <div class="robot-shadow"></div>
+    </div>
+  </aside>
+
+  <footer>
+    <a class="brand" href="/">NODEVERSE</a>
+    <p>연결된 배움의 세계</p>
+    <a href="/staff/" style="color:#7a8a85; font-size:11px; text-decoration:none;">🔒 관리자 전용 포털 (Admin) ↗</a>
+    <span>© 2026 NODEVERSE</span>
+  </footer>
+
+  <script src="/static/portal/config.js"></script>
+  <script src="/static/portal/app.js"></script>
+  <script src="/static/portal/island-games.js"></script>
+  <script src="/static/portal/showcase.js"></script>
+  <script src="/static/portal/cobot-chat.js"></script>
+</body>
+</html>

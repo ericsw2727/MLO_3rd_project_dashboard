@@ -7,6 +7,7 @@
   <title>{% block title %}NODEVERSE &middot; Learning Observatory{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/observatory.css' %}">
   <link rel="stylesheet" href="{% static 'css/dashboard-refresh.css' %}">
+  <link rel="stylesheet" href="{% static 'css/catalog-dashboard.css' %}">
   <script src="{% static 'js/observatory.js' %}" defer></script>
   <script src="{% static 'js/dashboard-refresh.js' %}" defer></script>
 </head>
@@ -21,29 +22,28 @@
       <span class="profile-role">관리자 워크스페이스</span>
       <span class="profile-divider"></span>
     </div>
-    <span class="nav-caption">WORKSPACE</span>
-    <nav class="sidebar-nav">
-      <a class="{% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'home' %}current{% endif %}" href="{% url 'dashboard' %}">{% include 'accounts/nav_icon.html' with icon='dashboard' %}<span>&#45824;&#49884;&#48372;&#46300;</span><i class="nav-active-dot"></i></a>
-      <a class="{% if request.resolver_match.url_name == 'players' or request.resolver_match.url_name == 'player-detail' %}current{% endif %}" href="{% url 'players' %}">{% include 'accounts/nav_icon.html' with icon='users' %}<span>&#54540;&#47112;&#51060;&#50612;</span></a>
-      <a class="{% if request.resolver_match.url_name == 'events' %}current{% endif %}" href="{% url 'events' %}">{% include 'accounts/nav_icon.html' with icon='activity' %}<span>&#54665;&#46041; &#47196;&#44536;</span></a>
-      <a href="{% url 'dashboard' %}#analysis-filters">{% include 'accounts/nav_icon.html' with icon='calendar' %}<span>&#44592;&#44036;&#48324; &#48516;&#49437;</span></a>
-      <a href="{% url 'dashboard' %}#charts">{% include 'accounts/nav_icon.html' with icon='chart' %}<span>&#54617;&#49845; &#51064;&#49324;&#51060;&#53944;</span></a>
+    <span class="nav-caption">분석</span>
+    <nav class="sidebar-nav" aria-label="주요 메뉴">
+      <a {% if request.resolver_match.url_name == 'dashboard' and scope != 'game' %}class="current" aria-current="page"{% endif %} href="{% url 'dashboard' %}">{% include 'accounts/nav_icon.html' with icon='dashboard' %}<span>전체 현황</span></a>
+      <a {% if request.resolver_match.url_name == 'games' or scope == 'game' %}class="current" aria-current="page"{% endif %} href="{% url 'games' %}">{% include 'accounts/nav_icon.html' with icon='chart' %}<span>게임 분석</span></a>
+      <a {% if request.resolver_match.url_name == 'players' or request.resolver_match.url_name == 'player-detail' %}class="current" aria-current="page"{% endif %} href="{% url 'players' %}">{% include 'accounts/nav_icon.html' with icon='users' %}<span>플레이어</span></a>
+      <a {% if request.resolver_match.url_name == 'events' %}class="current" aria-current="page"{% endif %} href="{% url 'events' %}">{% include 'accounts/nav_icon.html' with icon='activity' %}<span>행동 로그</span></a>
     </nav>
-    <span class="nav-caption management-caption">MANAGEMENT</span>
-    <nav class="sidebar-nav">
-      <a class="{% if request.resolver_match.url_name == 'me' %}current{% endif %}" href="{% url 'me' %}">{% include 'accounts/nav_icon.html' with icon='profile' %}<span>&#45236; &#44228;&#51221;</span></a>
-      <a class="{% if request.resolver_match.url_name == 'guide' %}current{% endif %}" href="{% url 'guide' %}">{% include 'accounts/nav_icon.html' with icon='guide' %}<span>&#51648;&#54364; &#44032;&#51060;&#46300;</span></a>
+    <span class="nav-caption management-caption">도움말 및 설정</span>
+    <nav class="sidebar-nav" aria-label="도움말 및 설정">
+      <a {% if request.resolver_match.url_name == 'guide' %}class="current" aria-current="page"{% endif %} href="{% url 'guide' %}">{% include 'accounts/nav_icon.html' with icon='guide' %}<span>지표 가이드</span></a>
+      <a {% if request.resolver_match.url_name == 'me' %}class="current" aria-current="page"{% endif %} href="{% url 'me' %}">{% include 'accounts/nav_icon.html' with icon='profile' %}<span>내 계정</span></a>
     </nav>
-    <div class="sidebar-bottom"><div class="workspace-note"><span class="workspace-note-icon">✧</span><strong>플레이의 다음 인사이트</strong><p>작은 시도에서 시작되는<br>학습의 변화를 발견하세요.</p><a href="{% url 'guide' %}">지표 가이드 보기 <span>↗</span></a></div><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="sidebar-logout" type="submit">{% include 'accounts/nav_icon.html' with icon='logout' %} &#47196;&#44536;&#50500;&#50883;</button></form><small>NODEVERSE &copy; 2026</small></div>
+    <div class="sidebar-bottom"><a class="public-site-link" href="{% url 'home' %}">← 게임 홈페이지</a><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="sidebar-logout" type="submit">{% include 'accounts/nav_icon.html' with icon='logout' %} 로그아웃</button></form><small>NODEVERSE &copy; 2026</small></div>
   </aside>
 {% endif %}
   <div class="app-main">
     <header class="topbar">
       {% if user.is_authenticated %}<button class="sidebar-toggle" type="button" aria-label="Toggle navigation" aria-controls="workspace-navigation" aria-expanded="false">&#9776;</button>{% endif %}
-      <a class="workspace-brand" href="{% url 'dashboard' %}"><span>Workspace <b>/</b> <strong>{% if request.resolver_match.url_name == 'players' or request.resolver_match.url_name == 'player-detail' %}Players{% elif request.resolver_match.url_name == 'events' %}Activity{% elif request.resolver_match.url_name == 'guide' %}Guide{% elif request.resolver_match.url_name == 'me' %}Account{% else %}Overview{% endif %}</strong></span><small>LEARNING INTELLIGENCE</small></a>
+      <a class="workspace-brand" href="{% url 'dashboard' %}"><span>Workspace <b>/</b> <strong>{% if request.resolver_match.url_name == 'players' or request.resolver_match.url_name == 'player-detail' %}Players{% elif request.resolver_match.url_name == 'events' %}Activity{% elif request.resolver_match.url_name == 'guide' %}Guide{% elif request.resolver_match.url_name == 'me' %}Account{% elif scope == 'game' %}Games{% else %}Overview{% endif %}</strong></span><small>LEARNING INTELLIGENCE</small></a>
       <div class="header-tools">
-        {% if user.is_authenticated %}<form class="header-search" method="get" action="{% url 'players' %}"><label for="workspace-search" class="sr-only">Search players</label><input id="workspace-search" name="q" placeholder="&#54540;&#47112;&#51060;&#50612; &#44160;&#49353;" maxlength="150"><button type="submit" aria-label="Search players">{% include 'accounts/nav_icon.html' with icon='search' %}</button></form>{% endif %}
-        <div class="themes" aria-label="&#54868;&#47732; &#53580;&#47560;"><button type="button" data-set-theme="light" title="Light" aria-label="Light theme">&#9788;</button><button type="button" data-set-theme="slate" title="Slate" aria-label="Slate theme">&#9681;</button><button type="button" data-set-theme="dark" title="Dark" aria-label="Dark theme">&#9790;</button></div>
+
+        <div class="themes" aria-label="&#54868;&#47732; &#53580;&#47560;"><button type="button" data-set-theme="light" title="Light" aria-label="Light theme">&#9788;</button><button type="button" data-set-theme="dark" title="Dark" aria-label="Dark theme">&#9790;</button></div>
         {% if user.is_authenticated %}<a class="header-avatar" href="{% url 'me' %}" aria-label="My account">{{ user.display_name|default:user.username|slice:':1' }}</a>{% endif %}
       </div>
     </header>

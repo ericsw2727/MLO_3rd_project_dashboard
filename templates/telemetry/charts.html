@@ -2,8 +2,8 @@
 {% include 'telemetry/chart_card.html' with chart='trend' chart_class='wide' category='LEARNING ACTIVITY' title='학습 활동 추이' question='문제 시작부터 해결까지, 일별 학습 흐름을 확인하세요.' note='선택 기간에 시작한 문제 실행을 현재 결과까지 추적합니다.' %}
 {% include 'telemetry/chart_card.html' with chart='outcomes' chart_class='outcome-card' category='COMPLETION OVERVIEW' title='문제 실행 결과' question='해결, 포기, 진행 중인 문제의 비중입니다.' note='진행 중인 문제도 전체 실행 수에 포함합니다.' %}
 </section>
-<details class="chart-more card section advanced-analytics"><summary><span><strong>상세 분석</strong><small>자료구조 · 힌트 · 풀이 시간 · 실패 원인</small></span><span class="expand-label">분석 펼치기 +</span></summary><section class="viz-grid">
-{% include 'telemetry/chart_card.html' with chart='topics' category='BY GAME' title='자료구조별 관찰' question='어떤 자료구조에서 해결률 차이가 나타나나요?' note='해결률 0~100%. 문제 난이도와 표본 수의 차이를 함께 확인하세요.' %}
+{% if not compact_charts %}<details class="chart-more card section advanced-analytics"><summary><span><strong>상세 차트 및 문제별 집계</strong><small>학습 분야 · 힌트 · 풀이 시간 · 실패 원인</small></span><span class="expand-label">분석 펼치기 +</span></summary><section class="viz-grid">
+{% include 'telemetry/chart_card.html' with chart='topics' category='BY GAME' title='학습 분야별 관찰' question='어떤 학습 분야에서 해결률 차이가 나타나나요?' note='해결률 0~100%. 문제 난이도와 표본 수의 차이를 함께 확인하세요.' %}
 {% include 'telemetry/chart_card.html' with chart='hints' category='HINT FOLLOW-UP' title='힌트 다음 시도' question='첫 힌트 이후 시작한 다음 시도의 결과입니다.' note='평가 불가는 비율에서 제외합니다. 힌트의 인과 효과를 의미하지 않습니다.' %}
 {% include 'telemetry/chart_card.html' with chart='histogram' category='SOLVING TIME' title='풀이 시간 분포' question='해결한 문제에 실제로 얼마나 머물렀나요?' note='완료된 문제 중 실제 풀이 시간이 있는 실행만 집계합니다.' %}
 {% include 'telemetry/chart_card.html' with chart='scatter' category='TIME & RETRIES' title='시간 × 재시도' question='긴 풀이와 재시도 횟수의 관계를 살펴보세요.' note='최대 200개 실행을 시간순으로 균등 추출합니다. 점은 겹칠 수 있습니다.' %}
@@ -11,6 +11,6 @@
 {% include 'telemetry/chart_card.html' with chart='attempts' category='ATTEMPT DISTRIBUTION' title='시도 횟수 분포' question='문제 하나를 해결하기까지 몇 번 시도했나요?' note='진행·포기 실행도 포함합니다. 4회 이상은 하나로 묶습니다.' %}
 {% include 'telemetry/chart_card.html' with chart='heatmap' chart_class='wide' category='ACTIVITY HOURS' title='활동 시간대' question='행동이 집중되는 요일과 시간을 확인하세요.' note='Asia/Seoul 기준 이벤트 수입니다. 접속자 수와는 다릅니다.' %}
 {% include 'telemetry/chart_card.html' with chart='versions' chart_class='wide' category='CONTENT VERSIONS' title='문제 · 버전 비교' question='같은 문제의 콘텐츠 버전별 결과 차이입니다.' note='표본 수는 툴팁·원자료 표에서 확인할 수 있습니다. 인과 관계를 의미하지 않습니다.' %}
-{% include 'telemetry/calendar.html' %}
-</section></details>
+
+</section>{% include 'telemetry/learning.html' %}</details>{% endif %}
 {{ visuals|json_script:'visualization-data' }}

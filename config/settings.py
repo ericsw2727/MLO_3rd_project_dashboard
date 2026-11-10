@@ -62,4 +62,4 @@ CSRF_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_AGE = 60 * 60 * 8
 CSRF_FAILURE_VIEW = 'accounts.views.csrf_failure'
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+STATICFILES_DIRS = [BASE_DIR / 'static', (str(Path('portal') / 'assets'), BASE_DIR / 'website' / 'assets')]

@@ -1,0 +1,1086 @@
+/* ==========================================================
+   NODEVERSE — Authentic Godot 3-Island Mini-Game Demo Styles
+   (DS: ST03 Stack / ALGO: ALG01 Sorting / SQL: SQL01 5x5 Drawer)
+   ========================================================== */
+
+.play-islands-section {
+  background: #f5f4ec;
+  border-top: 1px solid #dfe5d8;
+  border-bottom: 1px solid #dfe5d8;
+  padding: 84px 6%;
+}
+
+.play-islands-container {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* ---------- 3 ISLAND TABS ---------- */
+.island-demo-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 28px 0 22px;
+}
+
+.island-demo-tab,
+.island-demo-tab[role="tab"] {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  background: #ffffff !important;
+  border: 3px solid #d4ddd0 !important;
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.4, 1);
+  box-shadow: 0 4px 0 #c5d1c0;
+  position: relative;
+  opacity: 1 !important;
+}
+
+.island-demo-tab:hover,
+.island-demo-tab[role="tab"]:hover {
+  transform: translateY(-3px);
+  border-color: #4b9e92 !important;
+  box-shadow: 0 7px 0 #3a7f6d, 0 12px 24px rgba(23, 61, 66, 0.12);
+}
+
+.island-demo-tab.active,
+.island-demo-tab[role="tab"].active {
+  background: #173d42 !important;
+  border-color: #1d1b2a !important;
+  color: #ffffff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #1d1b2a, 0 14px 28px rgba(23, 61, 66, 0.22);
+}
+
+.island-demo-tab-thumb {
+  width: 84px;
+  height: 56px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 2px solid #1d1b2a;
+  flex-shrink: 0;
+  image-rendering: pixelated;
+}
+
+.island-demo-tab-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.island-demo-tab-badge {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: #2f5fb3;
+}
+
+.island-demo-tab.active .island-demo-tab-badge {
+  color: #f2c14e;
+}
+
+.island-demo-tab-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #173d42;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.island-demo-tab.active .island-demo-tab-title {
+  color: #ffffff;
+}
+
+.island-demo-tab-sub {
+  font-size: 12px;
+  color: #5b706b;
+}
+
+.island-demo-tab.active .island-demo-tab-sub {
+  color: #b7dcd4;
+}
+
+.island-demo-tab-stars {
+  margin-left: auto;
+  font-size: 15px;
+  color: #f2c14e;
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+
+/* ---------- GODOT STAGE SHELL ---------- */
+.godot-stage-shell {
+  background: #1d1b2a;
+  border: 4px solid #1d1b2a;
+  border-radius: 16px;
+  box-shadow: 0 22px 48px rgba(18, 35, 38, 0.24), 0 8px 0 #12111a;
+  overflow: hidden;
+  color: #fbf1d6;
+}
+
+/* Top HUD Bar (StageHUD style) */
+.godot-hud-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 18px;
+  background: #252336;
+  border-bottom: 4px solid #1d1b2a;
+  flex-wrap: wrap;
+}
+
+.godot-title-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #6b4a2b;
+  border: 3px solid #1d1b2a;
+  padding: 6px 12px;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.45);
+}
+
+.godot-stage-id {
+  background: #2f5fb3;
+  border: 2px solid #1d1b2a;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 900;
+  padding: 2px 8px;
+  letter-spacing: 0.5px;
+}
+
+.godot-stage-name {
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.godot-mission-plate {
+  flex: 1;
+  min-width: 240px;
+  background: #f6e7c8;
+  border: 3px solid #1d1b2a;
+  padding: 7px 14px;
+  color: #1d3a73;
+  font-size: 14.5px;
+  font-weight: 800;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.godot-mission-tag {
+  background: #f2c14e;
+  color: #1d1b2a;
+  border: 2px solid #1d1b2a;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 2px 6px;
+  flex-shrink: 0;
+}
+
+.godot-level-tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.godot-level-btn {
+  background: #36334d;
+  color: #d7d2e8;
+  border: 2px solid #1d1b2a;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #14121f;
+  transition: all 0.15s ease;
+}
+
+.godot-level-btn:hover {
+  background: #4a4669;
+  color: #ffffff;
+}
+
+.godot-level-btn.active {
+  background: #f2c14e;
+  color: #1d1b2a;
+}
+
+.godot-level-btn.done::after {
+  content: ' ★';
+  color: #e69d00;
+}
+
+.godot-level-btn.active.done::after {
+  color: #1d1b2a;
+}
+
+/* NPC Dialogue & Toast Bar */
+.godot-npc-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  background: #f6e7c8;
+  border-bottom: 4px solid #1d1b2a;
+  color: #1d1b2a;
+}
+
+.godot-npc-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  border: 3px solid #1d1b2a;
+  background: #e6d2a8;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.godot-npc-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.godot-npc-name {
+  font-size: 11.5px;
+  font-weight: 900;
+  color: #6b4a2b;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.godot-npc-speech {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #1d1b2a;
+  margin: 2px 0 0;
+  line-height: 1.45;
+}
+
+.godot-npc-speech.good {
+  color: #1f7a39;
+}
+
+.godot-npc-speech.wrong {
+  color: #c93333;
+}
+
+/* ---------- MAIN SPLIT LAYOUT (STAGE CANVAS + CODE PANEL) ---------- */
+.godot-stage-main {
+  display: grid;
+  grid-template-columns: 1.45fr 1fr;
+  min-height: 470px;
+  background: #181a24;
+}
+
+/* Left Interactive Field */
+.godot-field {
+  position: relative;
+  background-color: #142229;
+  background-size: cover;
+  background-position: center;
+  border-right: 4px solid #1d1b2a;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 16px;
+  user-select: none;
+}
+
+.godot-field::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(16, 24, 36, 0.42) 0%, rgba(16, 24, 36, 0.58) 100%);
+  pointer-events: none;
+}
+
+.godot-field-inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  min-height: 430px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Walking Robot Actor inside Field */
+.stage-robot-actor {
+  position: absolute;
+  width: 54px;
+  height: 86px;
+  transform: translate(-50%, -85%);
+  transition: left 0.2s cubic-bezier(0.25, 0.9, 0.35, 1), top 0.2s cubic-bezier(0.25, 0.9, 0.35, 1);
+  z-index: 20;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stage-robot-actor img {
+  width: 48px;
+  height: auto;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.55));
+}
+
+.stage-robot-held {
+  position: absolute;
+  top: -28px;
+  background: linear-gradient(145deg, #f9c75a, #ce8d25);
+  color: #1d1b2a;
+  border: 2.5px solid #1d1b2a;
+  border-radius: 5px;
+  padding: 2px 8px;
+  font-size: 13px;
+  font-weight: 900;
+  box-shadow: 0 3px 0 #6b4a2b;
+  white-space: nowrap;
+}
+
+.stage-robot-prompt {
+  position: absolute;
+  bottom: -24px;
+  background: #1d1b2a;
+  color: #f2c14e;
+  border: 2px solid #f2c14e;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 10.5px;
+  font-weight: 800;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.45);
+}
+
+/* ==========================================================
+   GAME 1: ST03 STACK (최근 작업 복구실)
+   ========================================================== */
+.st03-board {
+  position: relative;
+  width: 100%;
+  height: 430px;
+}
+
+.st03-station {
+  position: absolute;
+  background: rgba(246, 231, 200, 0.95);
+  border: 3px solid #1d1b2a;
+  box-shadow: 0 5px 0 rgba(29, 27, 42, 0.75);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #1d1b2a;
+  cursor: pointer;
+  transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
+}
+
+.st03-station:hover,
+.st03-station.focused {
+  border-color: #f2c14e;
+  box-shadow: 0 0 0 3px rgba(242, 193, 78, 0.55), 0 6px 0 #1d1b2a;
+  transform: translateY(-2px);
+}
+
+.st03-station-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 900;
+  color: #1d3a73;
+  margin-bottom: 6px;
+  border-bottom: 2px dashed rgba(29, 27, 42, 0.2);
+  padding-bottom: 4px;
+}
+
+.st03-key-hint {
+  background: #1d1b2a;
+  color: #f2c14e;
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* Tower Station */
+.st03-tower-spot {
+  left: 4%;
+  top: 28px;
+  width: 170px;
+  height: 255px;
+  display: flex;
+  flex-direction: column;
+}
+
+.st03-tower-slots {
+  flex: 1;
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 6px;
+  background: rgba(29, 27, 42, 0.12);
+  border: 2px inset rgba(29, 27, 42, 0.25);
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.st03-crate {
+  width: 116px;
+  height: 42px;
+  background: linear-gradient(145deg, #f9c75a, #d48e21);
+  border: 3px solid #1d1b2a;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  font-size: 18px;
+  font-weight: 900;
+  color: #1d1b2a;
+  box-shadow: 0 3px 0 #6b4a2b;
+}
+
+.st03-crate.is-top {
+  border-color: #2f5fb3;
+  box-shadow: 0 0 0 2px #5fd6ff, 0 3px 0 #1d3a73;
+}
+
+.st03-top-tag {
+  font-size: 10px;
+  background: #2f5fb3;
+  color: #fff;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* Intake Rail Station */
+.st03-intake-spot {
+  right: 4%;
+  top: 28px;
+  width: 210px;
+}
+
+.st03-rail-items {
+  display: flex;
+  gap: 8px;
+  min-height: 48px;
+  align-items: center;
+  padding: 4px;
+}
+
+.st03-rail-crate {
+  width: 48px;
+  height: 44px;
+  background: linear-gradient(145deg, #f6e7c8, #cfb68a);
+  border: 3px solid #1d1b2a;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+  font-weight: 900;
+  box-shadow: 0 3px 0 #6b4a2b;
+}
+
+.st03-rail-crate.first {
+  background: linear-gradient(145deg, #f9c75a, #d48e21);
+}
+
+/* Peek Desk Station */
+.st03-desk-spot {
+  left: 38%;
+  top: 95px;
+  width: 165px;
+  text-align: center;
+}
+
+/* Output Workbench Station */
+.st03-output-spot {
+  left: 16%;
+  bottom: 12px;
+  right: 8%;
+}
+
+.st03-output-slots {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-height: 50px;
+}
+
+.st03-out-slot {
+  width: 68px;
+  height: 46px;
+  border: 2.5px dashed #6b4a2b;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: #6b4a2b;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.st03-out-slot.filled {
+  border-style: solid;
+  border-color: #1d1b2a;
+  background: #bfe3b4;
+  color: #1d1b2a;
+  font-size: 18px;
+  font-weight: 900;
+  box-shadow: 0 3px 0 #3f9d48;
+}
+
+/* ==========================================================
+   GAME 2: ALG01 SORTING (순서 맞춤 작업대)
+   ========================================================== */
+.alg01-board {
+  position: relative;
+  width: 100%;
+  height: 430px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px 10px;
+}
+
+.alg01-algo-banner {
+  align-self: center;
+  background: #f2c14e;
+  color: #1d1b2a;
+  border: 3px solid #1d1b2a;
+  padding: 6px 18px;
+  font-size: 15px;
+  font-weight: 900;
+  box-shadow: 0 4px 0 #1d1b2a;
+  border-radius: 6px;
+}
+
+.alg01-crates-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+
+.alg01-crate-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  position: relative;
+}
+
+.alg01-index-label {
+  font-size: 12px;
+  font-weight: 900;
+  color: #fbf1d6;
+  background: rgba(29, 27, 42, 0.85);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.alg01-crate-box {
+  width: 74px;
+  height: 82px;
+  background: #fbf1d6;
+  border: 4px solid #1d1b2a;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  font-weight: 900;
+  color: #1d1b2a;
+  box-shadow: 0 6px 0 #1d1b2a;
+  transition: all 0.16s ease;
+}
+
+.alg01-crate-box:hover {
+  transform: translateY(-4px);
+}
+
+.alg01-crate-box.comparing {
+  border-color: #f2c14e;
+  background: #fff6d6;
+  box-shadow: 0 0 0 4px rgba(242, 193, 78, 0.65), 0 6px 0 #1d1b2a;
+  transform: translateY(-6px);
+}
+
+.alg01-crate-box.settled {
+  background: #bfe3b4;
+  border-color: #1d1b2a;
+}
+
+.alg01-crate-box.hole {
+  background: rgba(255, 215, 168, 0.35);
+  border-style: dashed;
+  border-color: #f2c14e;
+  color: #f2c14e;
+  font-size: 14px;
+}
+
+.alg01-status-tag {
+  font-size: 11px;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 2px solid #1d1b2a;
+}
+
+.alg01-status-tag.settled {
+  background: #bfe3b4;
+  color: #1d1b2a;
+}
+
+.alg01-status-tag.compare {
+  background: #f2c14e;
+  color: #1d1b2a;
+}
+
+.alg01-actions-bar {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: auto;
+  padding-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.alg01-station-btn {
+  background: #f6e7c8;
+  color: #1d1b2a;
+  border: 3px solid #1d1b2a;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #1d1b2a;
+  transition: all 0.14s ease;
+}
+
+.alg01-station-btn:hover {
+  background: #f2c14e;
+  transform: translateY(-2px);
+}
+
+.alg01-station-btn.primary {
+  background: #2f5fb3;
+  color: #ffffff;
+}
+
+.alg01-station-btn.primary:hover {
+  background: #3d73d1;
+}
+
+/* ==========================================================
+   GAME 3: SQL01 5x5 DRAWER PAINTING (필요한 칸만 꺼내기)
+   ========================================================== */
+.sql01-board {
+  position: relative;
+  width: 100%;
+  height: 430px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sql01-drawer-wrap {
+  position: relative;
+  background: rgba(29, 27, 42, 0.82);
+  border: 3px solid #1d1b2a;
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.sql01-grid {
+  display: grid;
+  grid-template-columns: 36px repeat(5, 82px);
+  gap: 5px;
+  align-items: center;
+}
+
+.sql01-col-header {
+  background: #e9dec2;
+  color: #1d1b2a;
+  border: 2.5px solid #1d1b2a;
+  border-radius: 5px;
+  padding: 5px 4px;
+  text-align: center;
+  font-size: 12.5px;
+  font-weight: 900;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s ease;
+}
+
+.sql01-col-header.selected {
+  background: #2f5fb3;
+  color: #ffffff;
+  border-color: #5fd6ff;
+  box-shadow: 0 0 8px rgba(95, 214, 255, 0.5);
+}
+
+.sql01-col-order-badge {
+  position: absolute;
+  top: -7px;
+  right: -5px;
+  background: #f2c14e;
+  color: #1d1b2a;
+  border: 1.5px solid #1d1b2a;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+}
+
+.sql01-row-badge {
+  background: #323048;
+  color: #fbf1d6;
+  border: 2px solid #1d1b2a;
+  border-radius: 5px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  font-size: 11.5px;
+  font-weight: 800;
+}
+
+.sql01-row-badge.pass {
+  background: #f2c14e;
+  color: #1d1b2a;
+}
+
+.sql01-cell {
+  position: relative;
+  height: 44px;
+  background: #fbf1d6;
+  border: 2.5px solid #1d1b2a;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: #1d1b2a;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.sql01-cell:hover {
+  transform: scale(1.03);
+}
+
+/* Column selected (Blue) */
+.sql01-cell.cell-col {
+  background: #bfe0ff;
+  border-color: #2f5fb3;
+  color: #102a56;
+}
+
+/* Row matched WHERE condition (Gold) */
+.sql01-cell.cell-row {
+  background: #ffe699;
+  border-color: #c98a14;
+}
+
+/* Intersection of SELECT Col & WHERE Row (Green Extracted!) */
+.sql01-cell.cell-hit {
+  background: #9ef0b4;
+  border-color: #1f7a39;
+  color: #0d3819;
+  box-shadow: inset 0 0 0 2px #ffffff;
+}
+
+/* NULL diagonal stripe cell */
+.sql01-cell.is-null {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(29, 27, 42, 0.08),
+    rgba(29, 27, 42, 0.08) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+  color: #7d7668;
+  font-style: italic;
+}
+
+/* Robot Cursor on 5x5 Grid */
+.sql01-cell.robot-here {
+  outline: 3px solid #f2c14e;
+  box-shadow: 0 0 12px rgba(242, 193, 78, 0.85);
+  z-index: 4;
+}
+
+.sql01-cell-robot {
+  position: absolute;
+  top: -18px;
+  right: -6px;
+  width: 28px;
+  height: auto;
+  image-rendering: pixelated;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 5px rgba(0,0,0,0.5));
+  animation: robot-float 1.8s ease-in-out infinite;
+}
+
+/* SQL Tool Belt */
+.sql01-toolbelt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(246, 231, 200, 0.96);
+  border: 3px solid #1d1b2a;
+  border-radius: 10px;
+  padding: 7px 12px;
+  box-shadow: 0 5px 0 #1d1b2a;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.sql01-tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  color: #1d1b2a;
+  border: 2.5px solid #1d1b2a;
+  border-radius: 7px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.sql01-tool-btn img {
+  width: 20px;
+  height: 20px;
+  image-rendering: pixelated;
+}
+
+.sql01-tool-btn.active {
+  background: #f2c14e;
+  box-shadow: 0 2px 0 #1d1b2a;
+  transform: translateY(-2px);
+}
+
+.sql01-tool-btn.submit-btn {
+  background: #3f9d48;
+  color: #ffffff;
+}
+
+.sql01-tool-btn.submit-btn:hover {
+  background: #32823a;
+}
+
+/* ---------- RIGHT: AUTHENTIC GODOT CODE & RESULT PANEL ---------- */
+.godot-code-panel {
+  display: flex;
+  flex-direction: column;
+  background: #141c2b;
+  color: #e8edf5;
+  padding: 16px;
+  gap: 14px;
+}
+
+.godot-state-box {
+  background: #1c263b;
+  border: 3px solid #1d1b2a;
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.godot-box-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #f2c14e;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 5px;
+}
+
+.godot-info-rows {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px 12px;
+  font-size: 12.5px;
+}
+
+.godot-info-item {
+  display: flex;
+  justify-content: space-between;
+  background: rgba(15, 21, 35, 0.6);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.godot-info-item span {
+  color: #8d98ab;
+}
+
+.godot-info-item b {
+  color: #5fd6ff;
+  font-family: Consolas, 'D2Coding', monospace;
+}
+
+/* Live Code Box */
+.godot-live-code-box {
+  flex: 1;
+  background: #0f1522;
+  border: 3px solid #1d1b2a;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.godot-code-pre {
+  margin: 0;
+  font-family: Consolas, 'Cascadia Mono', 'D2Coding', monospace;
+  font-size: 13px;
+  line-height: 1.65;
+  color: #e8edf5;
+  white-space: pre-wrap;
+  overflow-y: auto;
+  max-height: 220px;
+}
+
+.godot-code-pre .kw { color: #5fd6ff; font-weight: 700; }
+.godot-code-pre .val { color: #f2c14e; }
+.godot-code-pre .cmt { color: #7fbf7f; }
+
+/* SQL Result Table Preview */
+.sql-result-preview {
+  background: #1c263b;
+  border: 3px solid #1d1b2a;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.sql-result-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-family: Consolas, 'D2Coding', monospace;
+}
+
+.sql-result-table th {
+  background: #2f5fb3;
+  color: #ffffff;
+  padding: 5px 8px;
+  text-align: left;
+  border: 1px solid #1d1b2a;
+}
+
+.sql-result-table td {
+  background: #fbf1d6;
+  color: #1d1b2a;
+  padding: 4px 8px;
+  border: 1px solid #d4c5a9;
+  font-weight: 700;
+}
+
+/* ---------- BOTTOM CONTROLS BAR ---------- */
+.godot-hud-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px;
+  background: #252336;
+  border-top: 4px solid #1d1b2a;
+  flex-wrap: wrap;
+}
+
+.godot-controls-guide {
+  font-size: 12.5px;
+  color: #c6c2d6;
+  font-weight: 600;
+}
+
+.godot-controls-guide kbd {
+  background: #14121f;
+  color: #f2c14e;
+  border: 1px solid #4a4669;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-family: Consolas, monospace;
+}
+
+.godot-action-btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.godot-btn {
+  background: #3a3752;
+  color: #ffffff;
+  border: 2.5px solid #1d1b2a;
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #14121f;
+  transition: all 0.14s ease;
+}
+
+.godot-btn:hover {
+  background: #4f4b6e;
+  transform: translateY(-1px);
+}
+
+.godot-btn.gold {
+  background: #f2c14e;
+  color: #1d1b2a;
+}
+
+.godot-btn.gold:hover {
+  background: #ffd166;
+}
+
+.godot-btn.green {
+  background: #3f9d48;
+  color: #ffffff;
+}
+
+@media (max-width: 960px) {
+  .island-demo-tabs {
+    grid-template-columns: 1fr;
+  }
+  .godot-stage-main {
+    grid-template-columns: 1fr;
+  }
+  .godot-field {
+    border-right: none;
+    border-bottom: 4px solid #1d1b2a;
+  }
+  .sql01-grid {
+    grid-template-columns: 28px repeat(5, 1fr);
+  }
+}

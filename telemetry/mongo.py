@@ -142,17 +142,22 @@ def load_snapshot(members, start, end, filters):
     sessions = {doc['_id']: from_document(PlaySession, doc) for doc in db.game_sessions.find({
         'player_id': {'$in': list(member_map)}, **({'topic': filters['topic']} if filters['topic'] else {})})}
     problem_query = {key: filters[key] for key in ('task_id', 'content_version') if filters[key]}
+    catalog_filter = bool(filters.get('category') or filters.get('game_id'))
+    if catalog_filter:
+        from .catalog import selected_codes
+        pattern = '^(' + '|'.join(selected_codes(filters)) + ')$'
+        problem_query['$and'] = [{'task_id': {'$regex': pattern, '$options': 'i'}}]
     if filters['topic']:
         problem_query['topic'] = filters['topic']
     problems = {doc['_id']: from_document(LearningTask, doc) for doc in db.game_problems.find(problem_query)}
     run_query = {'session_id': {'$in': list(sessions)}, 'task_id': {'$in': list(problems)}}
     matching_session_ids = None
-    if filters['task_id'] or filters['content_version']:
+    if filters['task_id'] or filters['content_version'] or catalog_filter:
         matching_session_ids = set(db.problem_runs.distinct('session_id', run_query))
     cohort_docs = list(db.problem_runs.find({**run_query, 'started_at': {'$gte': start, '$lt': end}}))
     runs = {doc['_id']: from_document(TaskRun, doc) for doc in cohort_docs}
     event_query = {'session_id': {'$in': list(sessions)}, 'occurred_at': {'$gte': start, '$lt': end}}
-    if filters['task_id'] or filters['content_version']:
+    if filters['task_id'] or filters['content_version'] or catalog_filter:
         event_query['run_id'] = {'$in': db.problem_runs.distinct('_id', run_query)}
     window_events = list(db.gameplay_events.find(event_query))
     extra_run_ids = {doc.get('run_id') for doc in window_events} - {None} - set(runs)

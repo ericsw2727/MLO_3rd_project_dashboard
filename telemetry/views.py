@@ -1,5 +1,5 @@
 from django.core.paginator import Paginator
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from accounts.views import admin_page, api
@@ -8,6 +8,7 @@ from .queries import selection, summary, topic_breakdown, player_rows
 from .learning import learning_report
 from .learning import selected_runs
 from .visuals import visual_report
+from .catalog import report as catalog_report, game_for
 from datetime import timedelta
 from django.utils import timezone
 from django.http import HttpResponse
@@ -26,48 +27,55 @@ def context(request, player=None):
 
 @require_GET
 @admin_page
-def dashboard_page(request):
-    scope = request.GET.get('scope', 'overview')
+def dashboard_page(request, scope=None):
+    scope = scope or request.GET.get('scope', 'overview')
     if scope not in ('overview', 'game', 'player'):
         scope = 'overview'
     page_context, players, sessions, events = context(request)
-    tabs = []
-    for key, label in [('overview', '전체 종합'), ('game', '게임별'), ('player', '플레이어별')]:
+    if scope == 'player':
         params = request.GET.copy()
-        for field in ('page', 'player_id', 'q', 'topic', 'task_id', 'content_version'):
+        params.pop('scope', None)
+        player_id = params.pop('player_id', [None])[-1]
+        if player_id:
+            from uuid import UUID
+            try:
+                target = '/staff/players/' + str(UUID(player_id)) + '/'
+            except ValueError:
+                target = '/staff/players/'
+        else:
+            target = '/staff/players/'
+        return redirect(target + ('?' + params.urlencode() if params else ''))
+    page_context.update({'scope': scope, 'scope_title': '게임 분석' if scope == 'game' else '전체 현황',
+        'scope_description': '게임을 선택해 풀이 과정과 실패 원인을 확인하세요.' if scope == 'game' else '전체 학습 흐름과 확인이 필요한 기록을 요약합니다.'})
+    catalog = catalog_report(selected_runs(page_context['filter'], players), events)
+    for area in catalog['areas']:
+        params = request.GET.copy()
+        for field in ('page', 'game_id', 'task_id', 'content_version', 'topic'):
             params.pop(field, None)
-        params['scope'] = key
-        tabs.append({'key': key, 'label': label, 'url': '?' + params.urlencode()})
-    page_context.update({'scope': scope, 'analysis_tabs': tabs,
-                'scope_title': {'overview': '전체 종합 분석', 'game': '게임별 분석', 'player': '플레이어별 분석'}[scope],
-                'scope_description': {'overview': '전체 플레이 현황과 게임 간 차이를 확인하세요.',
-                    'game': '게임을 선택해 문제와 실패 원인을 살펴보세요.',
-                    'player': '플레이어를 선택해 풀이 과정과 학습 흐름을 확인하세요.'}[scope]})
-    if scope in ('overview', 'game'):
-        rows = []
-        comparison_params = request.GET.copy()
-        comparison_params.pop('topic', None)
-        _, comparison_players, comparison_sessions, comparison_events = selection(comparison_params)
-        for key, label in PlaySession.TOPICS:
-            params = request.GET.copy()
-            params.update({'scope': 'game', 'topic': key})
-            game_sessions = comparison_sessions.filter(topic=key)
-            game_events = comparison_events.filter(session__topic=key)
-            rows.append({'label': label, 'url': '?' + params.urlencode(),
-                         'stats': summary(comparison_players, game_sessions, game_events)})
-        page_context['game_rows'] = rows
-    else:
-        page = Paginator(players.order_by('display_name', 'id'), 10).get_page(request.GET.get('page'))
-        rows = player_rows(page.object_list, sessions, events)
-        for row in rows:
-            params = request.GET.copy()
-            params.pop('page', None)
-            params['player_id'] = str(row['player'].pk)
-            row['url'] = '?' + params.urlencode()
-        page_context.update({'player_rows': rows, 'page': page})
-        if page_context['filter'].is_valid():
-            page_context['selected_player'] = page_context['filter'].cleaned_data['player_id']
-    page_context['show_analysis'] = scope != 'player' or bool(page_context.get('selected_player'))
+        params.pop('scope', None)
+        params['category'] = area['key']
+        area['url'] = '/staff/games/?' + params.urlencode()
+    for game in catalog['games']:
+        params = request.GET.copy()
+        for field in ('page', 'task_id', 'content_version', 'topic'):
+            params.pop(field, None)
+        params.pop('scope', None)
+        params['category'] = game['area']
+        params['game_id'] = game['code']
+        game['url'] = '/staff/games/?' + params.urlencode()
+        game['events_url'] = '/staff/events/?' + params.urlencode()
+    cleaned = page_context['filter'].cleaned_data
+    catalog['visible_games'] = [g for g in catalog['games']
+        if (not cleaned.get('category') or g['area'] == cleaned['category'])
+        and (not cleaned.get('game_id') or g['code'] == cleaned['game_id'])]
+    page_context['catalog'] = catalog
+    selected_game = game_for(cleaned.get('game_id', ''))
+    page_context['selected_game'] = selected_game
+    if selected_game:
+        page_context['scope_title'] = selected_game['title']
+        page_context['scope_description'] = selected_game['code'] + ' · ' + selected_game['concept']
+    page_context['show_analysis'] = scope == 'overview' or bool(selected_game)
+    page_context['compact_charts'] = scope == 'overview'
     page_context['recent_events'] = events.select_related('session__player', 'run__task', 'attempt').order_by('-occurred_at', '-sequence')[:8]
     if page_context['show_analysis']:
         page_context['visuals'] = visual_report(page_context['filter'], players, events)
@@ -163,11 +171,13 @@ def export_runs(request):
     response['Content-Disposition']='attachment; filename="nodeverse-runs.csv"'
     response.write('\ufeff')
     writer=csv.writer(response)
-    writer.writerow(['player_id','display_name','source','run_id','task_id','version','status','started_at','active_seconds','paused_seconds'])
+    writer.writerow(['player_id','display_name','source','run_id','task_id','version','status','started_at','active_seconds','paused_seconds','game_id','game_title','category'])
     for run in selected_runs(filter_form,players).select_related('session__player','task').order_by('started_at','id').iterator():
+        game = game_for(run.task.task_id)
         row=[run.session.player_id,run.session.player.display_name,run.session.player.source,run.pk,run.task.task_id,
                          run.task.content_version,run.status,run.started_at.isoformat(),
-                         run.active_ms/1000 if run.active_ms is not None else '',run.paused_ms/1000]
+                         run.active_ms/1000 if run.active_ms is not None else '',run.paused_ms/1000,
+                         game['code'] if game else '', game['title'] if game else '', game['area'] if game else 'unmapped']
         writer.writerow(["'"+value if isinstance(value,str) and value.startswith(('=', '+', '-', '@', '\t', '\r', '\n')) else value for value in row])
     return response
 

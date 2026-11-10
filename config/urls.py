@@ -1,5 +1,5 @@
 from django.urls import path
-from django.views.generic import RedirectView
+from django.views.generic import RedirectView, TemplateView
 from django.views.decorators.http import require_GET
 from accounts import views
 from telemetry import views as analytics
@@ -8,8 +8,11 @@ from telemetry.game_api import player_login, game_records
 urlpatterns = [
     path('api/game/records', game_records, name='game-records'),
     path('api/game/player-login', player_login, name='game-player-login'),
-    path('', analytics.dashboard_page, name='home'),
+    path('', require_GET(TemplateView.as_view(template_name='portal/index.html')), name='home'),
+    path('index.html', require_GET(RedirectView.as_view(pattern_name='home', permanent=False))),
+    path('dashboard.html', require_GET(RedirectView.as_view(pattern_name='dashboard', permanent=False))),
     path('staff/', analytics.dashboard_page, name='dashboard'),
+    path('staff/games/', analytics.dashboard_page, {'scope': 'game'}, name='games'),
     path('staff/players/', analytics.players_page, name='players'),
     path('staff/players/<uuid:player_id>/', analytics.player_page, name='player-detail'),
     path('staff/events/', analytics.events_page, name='events'),

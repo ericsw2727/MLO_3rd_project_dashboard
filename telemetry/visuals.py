@@ -5,6 +5,7 @@ from math import ceil
 from django.utils import timezone
 from .learning import selected_runs
 from .models import PlaySession
+from .catalog import AREAS, area_for
 
 
 def visual_report(form, players, events):
@@ -20,7 +21,8 @@ def visual_report(form, players, events):
         delta=(timezone.localdate(run.started_at)-start).days
         bucket=start+timedelta(days=(delta//stride)*stride)
         daily[bucket]['started']+=1;daily[bucket][run.status]+=1;outcomes[run.status]+=1
-        topic[run.task.topic]['n']+=1;topic[run.task.topic]['solved']+=int(run.status=='completed')
+        area = area_for(run.task.task_id)
+        topic[area]['n']+=1;topic[area]['solved']+=int(run.status=='completed')
         key=(run.task.task_id,run.task.content_version)
         versions[key]['n']+=1;versions[key]['solved']+=int(run.status=='completed')
         attempts=sorted(run.attempts.all(),key=lambda a:(a.started_at,a.number));attempt_bins[min(len(attempts),4)]+=1
@@ -40,7 +42,7 @@ def visual_report(form, players, events):
     heat=Counter()
     for stamp in events.values_list('occurred_at',flat=True).iterator():
         stamp=timezone.localtime(stamp);heat[(stamp.weekday(),stamp.hour)]+=1
-    topic_rows=[{'label':label,'n':topic[key]['n'],'rate':round(100*topic[key]['solved']/topic[key]['n'],1) if topic[key]['n'] else None} for key,label in PlaySession.TOPICS]
+    topic_rows=[{'label':label,'n':topic[key]['n'],'rate':round(100*topic[key]['solved']/topic[key]['n'],1) if topic[key]['n'] else None} for key,label in AREAS + [('unmapped', '미분류')]]
     version_rows=[{'task':k[0],'version':k[1],'n':v['n'],'rate':round(100*v['solved']/v['n'],1)} for k,v in sorted(versions.items())]
     failure_rows=[{'label':f'{op} · {reason}','value':n} for (op,reason),n in failures.most_common(7)]
     insights=[]

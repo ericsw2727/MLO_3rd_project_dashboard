@@ -1,0 +1,5 @@
+<section class="observation-strip" aria-label="데이터 해석 안내">
+  <div><span class="eyebrow">OBSERVATION STATUS</span><strong>{% if catalog.totals.runs and not catalog.totals.completed and not catalog.totals.abandoned %}완료·포기 판정이 아직 없습니다{% elif not catalog.totals.runs %}선택 조건에 문제 실행 기록이 없습니다{% else %}저장된 결과를 기준으로 분석합니다{% endif %}</strong><p>연산 성공은 행동 하나의 성공이며 문제 완료와 다릅니다. 문제 해결률은 완료 ÷ 시작한 문제 실행입니다.</p></div>
+  <div class="observation-counts"><span>완료 <b>{{ catalog.totals.completed }}</b></span><span>진행 중 <b>{{ catalog.totals.in_progress }}</b></span><span>포기 <b>{{ catalog.totals.abandoned }}</b></span></div>
+  <small>완료 기록 중 풀이 시간 누락 {{ catalog.missing_active }}건 · 힌트 미기록은 미사용을 증명하지 않습니다.</small>
+</section>

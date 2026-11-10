@@ -1,0 +1,12 @@
+<section class="catalog-section section" aria-label="학습 분야 현황">
+  <div class="section-head"><div><span class="eyebrow">LEARNING PORTFOLIO</span><h2>4개 분야, 24개의 학습 경험</h2></div><span class="catalog-coverage">기록이 관측된 게임 <b>{{ catalog.observed }} / {{ catalog.registered }}</b><small>선택한 기간·필터 기준</small></span></div>
+  <div class="area-grid">
+  {% for area in catalog.areas %}<a href="{{ area.url }}" class="card area-card area-{{ area.key }}">
+    <div class="area-card-top"><span class="area-symbol">{% if area.key == 'structures' %}▤{% elif area.key == 'algorithms' %}⇄{% elif area.key == 'sql' %}⌘{% else %}▥{% endif %}</span><span>{{ area.registered }}종 <span aria-hidden="true">↗</span></span></div>
+    <h3>{{ area.label }}</h3><p>기록 관측 {{ area.observed }} / {{ area.registered }}종</p>
+    <div class="area-rate"><strong>{% if area.completion_rate != None %}{{ area.completion_rate }}<small>%</small>{% else %}—{% endif %}</strong><span>문제 해결률</span></div>
+    <div class="area-facts"><span>문제 실행 <b>{{ area.runs }}</b></span><span>완료 <b>{{ area.completed }}</b></span><span>진행 중 <b>{{ area.in_progress }}</b></span></div>
+  </a>{% endfor %}
+  </div>
+</section>
+{% if catalog.unmapped.runs %}<p class="mapping-note">게임 분류가 필요한 문제 실행 {{ catalog.unmapped.runs }}건이 전체 통계에 포함되어 있습니다. <a href="{% url 'games' %}?{{ querystring }}#unmapped-records">기록 확인 ↗</a></p>{% endif %}

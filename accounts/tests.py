@@ -14,7 +14,9 @@ class PublicContractTests(SimpleTestCase):
         self.assertIn('csrf_token', client.get('/api/auth/csrf').json())
 
     def test_anonymous_protected_routes(self):
-        for path in ['/', '/staff/', '/staff/players/', '/staff/events/']:
+        # The integrated public homepage is accessible; analytics remain protected.
+        self.assertEqual(self.client.get('/').status_code, 200)
+        for path in ['/staff/', '/staff/players/', '/staff/events/']:
             self.assertRedirects(self.client.get(path), '/staff/login/')
         for path in ['/api/auth/me', '/api/admin/summary', '/api/admin/players', '/api/admin/events']:
             self.assertEqual(self.client.get(path).status_code, 401)
