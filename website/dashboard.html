@@ -1,0 +1,229 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>운영 대시보드 시안 | NODEVERSE</title><link rel="stylesheet" href="style.css">
+<style>
+/* Admin Gatekeeper Styles */
+.admin-auth-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(14, 33, 36, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+.admin-auth-card {
+  background: #173d42;
+  border: 1px solid #2b5d63;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 440px;
+  padding: 36px 32px;
+  text-align: center;
+  color: #fff;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  animation: authPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes authPop {
+  0% { transform: scale(0.92); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes authShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+}
+.auth-shake {
+  animation: authShake 0.4s ease;
+}
+.admin-auth-icon {
+  font-size: 40px;
+  margin-bottom: 14px;
+}
+.admin-auth-eyebrow {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #f5cd78;
+  margin: 0 0 8px;
+}
+.admin-auth-card h2 {
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0 0 10px;
+  color: #ffffff;
+}
+.admin-auth-desc {
+  font-size: 12.5px;
+  color: #b7ceca;
+  line-height: 1.6;
+  margin: 0 0 24px;
+}
+.auth-input-wrap {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.auth-input-wrap input {
+  flex-grow: 1;
+  padding: 13px 16px;
+  background: rgba(8, 24, 27, 0.7);
+  border: 1px solid #32676e;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.auth-input-wrap input:focus {
+  border-color: #f5cd78;
+  box-shadow: 0 0 0 3px rgba(245, 205, 120, 0.2);
+}
+.auth-input-wrap button {
+  padding: 13px 20px;
+  background: #f5cd78;
+  color: #173d42;
+  border: 0;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.15s, background 0.15s;
+}
+.auth-input-wrap button:hover {
+  background: #fad98f;
+  transform: translateY(-1px);
+}
+.admin-error-msg {
+  font-size: 12px;
+  color: #ff6b6b;
+  margin-bottom: 14px;
+  background: rgba(255, 107, 107, 0.1);
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 107, 107, 0.3);
+}
+.admin-auth-hint {
+  font-size: 11.5px;
+  color: #9cb3af;
+  margin: 18px 0;
+  padding-top: 14px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.12);
+}
+.admin-auth-hint code {
+  color: #fce4a6;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+.admin-back-btn {
+  font-size: 12px;
+  color: #a1bbb6;
+  text-decoration: underline;
+  display: inline-block;
+  margin-top: 6px;
+}
+.admin-back-btn:hover {
+  color: #fff;
+}
+.admin-logout-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #eed492;
+  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 14px;
+  display: inline-block;
+  text-align: center;
+  transition: all 0.2s;
+}
+.admin-logout-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+</style>
+
+</head><body class="ops">
+
+  <!-- ADMIN GATEKEEPER MODAL -->
+  <div id="admin-auth-overlay" class="admin-auth-overlay">
+    <div class="admin-auth-card" id="admin-card">
+      <div class="admin-auth-icon">🔐</div>
+      <p class="admin-auth-eyebrow">NODEVERSE RESTRICTED ACCESS</p>
+      <h2>운영자 / 관리자 인증</h2>
+      <p class="admin-auth-desc">이 페이지는 플레이어 학습 분석 및 서버 모니터링을 위한 관리자 전용 공간입니다. 인가된 운영자 암호를 입력해 주세요.</p>
+      
+      <form id="admin-auth-form" onsubmit="return false;">
+        <div class="auth-input-wrap">
+          <input type="password" id="admin-pw" placeholder="운영자 암호 입력" autofocus autocomplete="current-password">
+          <button type="submit" id="admin-login-btn">인증 ➔</button>
+        </div>
+        <div id="admin-error-msg" class="admin-error-msg" style="display:none;"></div>
+      </form>
+      
+
+      <a class="admin-back-btn" href="index.html">← 공개 메인 웹사이트로 돌아가기</a>
+    </div>
+  </div>
+<div class="ops-layout"><aside class="sidebar"><a href="index.html" class="brand">◇ NODEVERSE<small></small></a><nav aria-label="대시보드 메뉴"><a class="active" href="#overview">▦ 운영 개요</a><a href="#quality">◇ 데이터 품질</a><a href="#sessions">☷ 플레이 세션</a></nav><a class="back" href="index.html">← 게임 소개로 돌아가기</a><span class="sample-tag">SAMPLE WORKSPACE · v1.0</span>
+<button id="admin-logout-btn" class="admin-logout-btn">🔒 세션 잠금</button></aside><main class="ops-main"><header class="ops-top"><div><p class="eyebrow">NODEVERSE OPERATIONS</p><h1>탐험의 흐름을 한눈에.</h1><p>학습 진행과 종료 기록을 함께 살펴보세요.</p></div><button id="export" class="button dark compact">CSV 내보내기 ↓</button></header><div class="demo-banner"><b>샘플 데이터 대시보드</b> · 아래 기록은 화면 검토용 가상 데이터입니다. 실시간 수집·관리자 인증은 연결되지 않았으며 실제 개인정보는 없습니다.</div><section id="overview"><div class="filters"><label for="period">기간</label><select id="period"><option value="7">최근 7일</option><option value="3">최근 3일</option><option value="1">기준일 하루</option></select><label for="island-filter">섬</label><select id="island-filter"><option value="all">전체 섬</option><option>입문 섬</option><option>자료구조 섬</option><option>알고리즘 섬</option><option>SQL 섬</option><option>데이터 탐험 섬</option><option>종합 도전 섬</option></select><span class="subnote">샘플 기준일 2026.11.05</span></div><div class="ops-kpis" aria-live="polite"><article class="kpi"><span>플레이 세션</span><strong id="k-total">—</strong><small>필터에 포함된 세션</small></article><article class="kpi"><span>학습 완료율</span><strong id="k-complete">—</strong><small>완료 / 전체 관측 세션</small></article><article class="kpi"><span>제출 정답률</span><strong id="k-correct">—</strong><small>정답 / 제출 답안</small></article><article class="kpi"><span>종료 경로 불명</span><strong id="k-unknown">—</strong><small>크래시로 단정하지 않음</small></article></div></section><div class="ops-panels"><section class="ops-card"><h2>섬별 학습 완료율</h2><p class="muted">한 세션당 한 학습 시도를 가정한 샘플입니다.</p><div id="island-bars"></div></section><section class="ops-card" id="quality"><h2>종료 경로 분포</h2><p class="muted">종료 경로와 중단 이유는 다른 정보입니다.</p><div id="route-list"></div><p class="muted" style="margin-top:18px">미완료 답안은 오답으로 채우지 않고, 유효한 제출 기록만 정답률에 반영합니다.</p></section></div><section class="ops-card" id="sessions"><div class="section-heading"><div><h2>플레이 세션</h2><p class="muted">세션 번호를 눌러 관측 사실과 처리 상태를 확인하세요.</p></div><div class="filters"><select id="status-filter" aria-label="진행 상태"><option value="all">모든 진행 상태</option><option value="완료">완료</option><option value="미완료">미완료</option></select><input id="search" type="search" placeholder="세션 번호 검색" aria-label="세션 번호 검색"></div></div><div class="table-wrap"><table><thead><tr><th>세션</th><th>시작 일시</th><th>탐험 구역</th><th>학습 상태</th><th>종료 경로</th><th>정답 / 제출</th><th>평균 FPS</th></tr></thead><tbody id="session-rows"></tbody></table></div><div class="table-bottom"><span id="table-count" aria-live="polite"></span><div><button id="prev" aria-label="이전 페이지">← 이전</button> <span id="page-number"></span> <button id="next" aria-label="다음 페이지">다음 →</button></div></div></section><p class="ops-footer">샘플 기준으로만 동작하는 시안입니다. 실제 운영 전 수집 API와 서버 측 접근 제어를 연결해야 합니다.</p></main></div><dialog id="detail-dialog"><button class="close" aria-label="닫기">×</button><p class="eyebrow">SESSION INSIGHT · SAMPLE</p><h2 id="detail-title"></h2><dl class="detail-grid" id="detail-fields"></dl><p class="muted">중단 원인은 관측 사실만으로 확정하지 않습니다. 이 기록은 가상 예시입니다.</p></dialog><script src="dashboard.js"></script>
+<script>
+// Admin Authentication Guard
+(function() {
+  const overlay = document.getElementById('admin-auth-overlay');
+  const card = document.getElementById('admin-card');
+  const pwInput = document.getElementById('admin-pw');
+  const form = document.getElementById('admin-auth-form');
+  const errorMsg = document.getElementById('admin-error-msg');
+  const logoutBtn = document.getElementById('admin-logout-btn');
+
+  const VALID_PASSWORDS = ['nd1234'];
+
+  // Check existing session
+  if (sessionStorage.getItem('nodeverse_admin_auth') === 'granted') {
+    overlay.style.display = 'none';
+  } else {
+    overlay.style.display = 'flex';
+    setTimeout(() => pwInput.focus(), 100);
+  }
+
+  function handleLogin() {
+    const entered = pwInput.value.trim();
+    if (VALID_PASSWORDS.includes(entered)) {
+      sessionStorage.setItem('nodeverse_admin_auth', 'granted');
+      overlay.style.opacity = '0';
+      setTimeout(() => {
+        overlay.style.display = 'none';
+      }, 300);
+    } else {
+      errorMsg.textContent = '❌ 암호가 올바르지 않습니다. 관리자에게 문의하세요.';
+      errorMsg.style.display = 'block';
+      card.classList.remove('auth-shake');
+      void card.offsetWidth; // trigger reflow
+      card.classList.add('auth-shake');
+      pwInput.value = '';
+      pwInput.focus();
+    }
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    handleLogin();
+  });
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      sessionStorage.removeItem('nodeverse_admin_auth');
+      location.reload();
+    });
+  }
+})();
+</script>
+
+</body></html>
+
