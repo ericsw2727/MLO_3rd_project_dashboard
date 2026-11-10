@@ -33,15 +33,21 @@ TEST_RUNNER = 'telemetry.test_runner.HybridTestRunner'
 TEMPLATES = [{'BACKEND': 'django.template.backends.django.DjangoTemplates', 'DIRS': [BASE_DIR / 'templates'], 'APP_DIRS': True,
               'OPTIONS': {'context_processors': ['django.template.context_processors.request', 'django.contrib.auth.context_processors.auth']}}]
 WSGI_APPLICATION = 'config.wsgi.application'
-DATABASES = {'default': {
-    'ENGINE': 'django.db.backends.mysql', 'NAME': required('MYSQL_DATABASE'),
-    'USER': required('MYSQL_USER'), 'PASSWORD': required('MYSQL_PASSWORD'),
-    'HOST': required('MYSQL_HOST'), 'PORT': required('MYSQL_PORT'),
-    'OPTIONS': {'charset': 'utf8mb4', 'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"},
-    'TEST': {'NAME': os.getenv('MYSQL_TEST_DATABASE', 'test_nodeverse')},
-}}
-if DATABASES['default']['TEST']['NAME'] == DATABASES['default']['NAME']:
-    raise ImproperlyConfigured('MYSQL_TEST_DATABASE는 개발 DB와 다른 전용 테스트 DB여야 합니다.')
+if os.getenv('DB_ENGINE') == 'sqlite3' or not os.getenv('MYSQL_DATABASE'):
+    DATABASES = {'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }}
+else:
+    DATABASES = {'default': {
+        'ENGINE': 'django.db.backends.mysql', 'NAME': required('MYSQL_DATABASE'),
+        'USER': required('MYSQL_USER'), 'PASSWORD': required('MYSQL_PASSWORD'),
+        'HOST': required('MYSQL_HOST'), 'PORT': required('MYSQL_PORT'),
+        'OPTIONS': {'charset': 'utf8mb4', 'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"},
+        'TEST': {'NAME': os.getenv('MYSQL_TEST_DATABASE', 'test_nodeverse')},
+    }}
+    if DATABASES['default']['TEST']['NAME'] == DATABASES['default']['NAME']:
+        raise ImproperlyConfigured('MYSQL_TEST_DATABASE는 개발 DB와 다른 전용 테스트 DB여야 합니다.')
 AUTH_USER_MODEL = 'accounts.User'
 AUTHENTICATION_BACKENDS = ['accounts.backends.AdminBackend']
 AUTH_PASSWORD_VALIDATORS = [

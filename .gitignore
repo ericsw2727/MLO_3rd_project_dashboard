@@ -8,3 +8,7 @@ __pycache__/
 htmlcov/
 tmp/
 *.log
+
+*.sqlite3
+*.bak
+
