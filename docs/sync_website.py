@@ -19,7 +19,7 @@ def build():
         target = '/' if url == 'index.html' else '/staff/' if url == 'dashboard.html' else '/static/portal/' + url
         return f'{attr}="{target}"'
     html = re.sub(r'(src|href|poster)="(?!https?:|#|/)([^"]+)"', asset, html)
-    html = html.replace('<a href="#film">소개 영상</a>', '<a href="#film">소개 영상</a>\n      <a href="/staff/">관리자 로그인</a>')
+    # Admin portal link is kept discreetly in the footer
     template = ROOT / 'templates' / 'portal' / 'index.html'
     template.parent.mkdir(parents=True, exist_ok=True)
     template.write_text(html, encoding='utf-8')
