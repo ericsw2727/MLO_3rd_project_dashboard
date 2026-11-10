@@ -1,93 +1,84 @@
-"""Stable synthetic fixtures for dashboard exploration, never login accounts."""
+"""Synthetic demo writes: members in MySQL, all learning data in MongoDB."""
 import random
 from datetime import timedelta
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from django.db import transaction
 from django.utils import timezone
+from pymongo import UpdateOne
 from telemetry.models import Player, PlaySession, LearningTask, TaskRun, SolveAttempt, BehaviorEvent
+from telemetry.mongo import collection, document, initialize_indexes
 from .seed_analytics_demo import stable
 
 
 class Command(BaseCommand):
-    help = 'Add 36 synthetic players and 504 varied problem runs across 28 days. Re-running preserves history.'
+    help = 'Add synthetic MongoDB play records, preserving existing data.'
 
     def add_arguments(self, parser):
-        parser.add_argument('--players',type=int,default=36)
-        parser.add_argument('--visits',type=int,default=14)
+        parser.add_argument('--players', type=int, default=36)
+        parser.add_argument('--visits', type=int, default=14)
 
     def handle(self, *args, **options):
         if not settings.DEBUG:
-            raise CommandError('DEBUG=True인 로컬에서만 생성할 수 있습니다.')
+            raise CommandError('Demo generation requires DEBUG=True.')
         if not 1 <= options['players'] <= 100 or not 1 <= options['visits'] <= 28:
-            raise CommandError('players는 1~100, visits는 1~28이어야 합니다.')
-        names = ['루나', '네오', '아리', '리오', '노아', '유니', '솔', '코코', '나루', '모아', '루트', '픽셀']
-        today = timezone.localtime().replace(hour=0, minute=0, second=0, microsecond=0)
-        totals = {'players': 0, 'runs': 0, 'events': 0}
-        with transaction.atomic():
-            for index in range(options['players']):
-                player, created = Player.objects.get_or_create(external_id=f'demo:observatory:v1:{index:02d}', defaults={
-                    'id': stable(f'observatory:player:{index}'), 'display_name': f'{names[index%12]} {index+1:02d}', 'source': 'demo'})
-                if player.source != 'demo':
-                    raise CommandError('데모 식별자가 실제 플레이어와 충돌합니다.')
-                totals['players'] += int(created)
-                for visit in range(options['visits']):
-                    key = f'observatory:v1:{index}:{visit}'
-                    if TaskRun.objects.filter(pk=stable(key)).exists():
-                        continue
-                    rng = random.Random(12000 + index*97 + visit)
-                    topic, label = PlaySession.TOPICS[(index+visit)%3]
-                    level = 1 + rng.randrange(3)
-                    version = '1.1' if rng.random() < .52 else '1.0'
-                    task, _ = LearningTask.objects.get_or_create(task_id=f'{topic}-{level:02d}', content_version=version,
-                        defaults={'id': stable(f'observatory:task:{topic}:{level}:{version}'), 'title': f'{label} {level}단계 연산 탐험', 'topic': topic})
-                    # Complete days only: no future events, and deterministic relative-day distribution.
-                    start = today - timedelta(days=1+(visit*2+index%3)%27) + timedelta(hours=rng.choice([8,10,12,14,16,18,19,20,21,22]),minutes=rng.randrange(60))
-                    skill = .40 + (index%6)*.07
-                    probability = skill + (.09 if version=='1.1' else 0) - .08*(level-1)
-                    draw = rng.random()
-                    status = 'completed' if draw < probability else 'in_progress' if draw > .93 else 'abandoned'
-                    attempt_count = rng.choices([1,2,3,4],[4 if index%6>3 else 1,4,3,2])[0]
-                    session = PlaySession(id=stable(key+':session'),player=player,topic=topic,level=level,game_version='synthetic-observatory-1.0',started_at=start,status='in_progress')
-                    session.save()
-                    run = TaskRun.objects.create(id=stable(key),session=session,task=task,started_at=start,status='in_progress')
-                    events=[];attempts=[];seconds=0;paused=0
-                    def emit(kind, attempt=None, **fields):
-                        events.append(BehaviorEvent(id=stable(key+f':event:{len(events)+1}'),session=session,run=run,attempt=attempt,
-                            sequence=len(events)+1,event_type=kind,occurred_at=start+timedelta(seconds=seconds),
-                            payload={'synthetic': True, 'dataset': 'observatory-v1', 'schema_version': '2.0'},**fields))
-                    emit('task_started')
-                    for number in range(1,attempt_count+1):
-                        seconds+=rng.randint(2,6)
-                        last=number==attempt_count
-                        outcome='success' if last and status=='completed' else 'in_progress' if last and status=='in_progress' else 'failure'
-                        attempt=SolveAttempt(id=stable(key+f':attempt:{number}'),run=run,number=number,
-                            started_at=start+timedelta(seconds=seconds),outcome=outcome)
-                        emit('attempt_started',attempt)
-                        seconds+=rng.randint(8,28)+level*6+(5-index%6)*3
-                        op={'stack':rng.choice(['push','pop']), 'queue':rng.choice(['enqueue','dequeue']), 'tree':rng.choice(['select_node','insert'])}[topic]
-                        reason=rng.choice({'stack':['empty_stack','wrong_order','wrong_target'], 'queue':['wrong_order','empty_queue','capacity_exceeded'], 'tree':['wrong_node','wrong_branch','wrong_order']}[topic])
-                        emit('operation_succeeded' if outcome=='success' else 'operation_failed',attempt,operation=op,
-                             failure_reason='' if outcome=='success' else reason,state_before={'size':rng.randrange(4)},state_after={'size':rng.randrange(4)})
-                        if outcome!='in_progress':
-                            seconds+=2
-                            attempt.ended_at=start+timedelta(seconds=seconds)
-                            emit('attempt_succeeded' if outcome=='success' else 'attempt_failed',attempt)
-                        attempts.append(attempt)
-                        if outcome!='success' and rng.random()<.67:
-                            seconds+=3;emit('hint',hint_id=f'{topic}-guide-{level}',hint_step=rng.randint(1,3))
-                        if not last and rng.random()<.3:
-                            seconds+=1;emit('paused');pause=rng.randint(15,75);seconds+=pause;paused+=pause;emit('resumed')
-                    seconds+=3
-                    if status!='in_progress':
-                        emit('task_completed' if status=='completed' else 'task_abandoned')
-                        run.ended_at=start+timedelta(seconds=seconds);run.active_ms=(seconds-paused)*1000;run.paused_ms=paused*1000
-                        session.ended_at=run.ended_at;session.duration_ms=seconds*1000
-                    run.status=status;session.status=status
-                    run.full_clean();run.save();session.save()
-                    SolveAttempt.objects.bulk_create(attempts)
-                    for event in events:
-                        event.clean()
-                    BehaviorEvent.objects.bulk_create(events,batch_size=500)
-                    totals['runs']+=1;totals['events']+=len(events)
-        self.stdout.write(self.style.SUCCESS(f'Observatory demo created: {totals}. Existing records unchanged.'))
+            raise CommandError('players: 1..100, visits: 1..28')
+        initialize_indexes()
+        documents = {model: {} for model in (PlaySession, LearningTask, TaskRun, SolveAttempt, BehaviorEvent)}
+        def add(record):
+            documents[type(record)][str(record.pk)] = document(record)
+        anchor = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        for index in range(options['players']):
+            member, _ = Player.objects.get_or_create(external_id=f'demo:mongo:{index}',
+                defaults={'id': stable(f'mongo:member:{index}'), 'display_name': f'Demo explorer {index+1:02d}', 'source': 'demo'})
+            if member.source != 'demo':
+                raise CommandError('Demo identity conflicts with a live member.')
+            for visit in range(options['visits']):
+                key = f'mongo:visit:{index}:{visit}'
+                if collection(TaskRun).find_one({'_id': str(stable(key))}):
+                    continue
+                rng = random.Random(12000 + index*97 + visit)
+                topic = ['stack', 'queue', 'tree'][(index+visit)%3]
+                version = '1.0' if index%2 else '1.1'
+                start = anchor - timedelta(days=1+(visit*2+index%3)%27) + timedelta(hours=9+index%12)
+                status = rng.choice(['completed', 'completed', 'abandoned', 'in_progress'])
+                duration = rng.randint(30,180)
+                end = start+timedelta(seconds=duration) if status != 'in_progress' else None
+                problem = LearningTask(id=stable(f'mongo:problem:{topic}:{version}'), task_id=f'{topic}-01',
+                    content_version=version, title=f'{topic} practice', topic=topic)
+                session = PlaySession(id=stable(key+':session'), player=member, topic=topic, level=1,
+                    game_version='synthetic-mongo-1.0', started_at=start, ended_at=end, status=status,
+                    duration_ms=duration*1000 if end else None)
+                run = TaskRun(id=stable(key), session=session, task=problem, started_at=start, ended_at=end,
+                    status=status, active_ms=duration*1000 if end else None, paused_ms=0)
+                for item in (problem,session,run): add(item)
+                sequence=0
+                def emit(kind, seconds, attempt=None, **extra):
+                    nonlocal sequence
+                    sequence += 1
+                    add(BehaviorEvent(id=stable(key+f':event:{sequence}'), session=session, run=run, attempt=attempt,
+                        sequence=sequence,event_type=kind,occurred_at=start+timedelta(seconds=seconds),
+                        received_at=start+timedelta(seconds=seconds),payload={'synthetic':True},**extra))
+                emit('task_started',0)
+                retry = index%3 != 0
+                count=2 if retry else 1
+                for number in range(1,count+1):
+                    seconds=2+(number-1)*(duration//2)
+                    outcome='failure' if number<count or status=='abandoned' else 'success' if status=='completed' else 'in_progress'
+                    attempt=SolveAttempt(id=stable(key+f':attempt:{number}'),run=run,number=number,
+                        started_at=start+timedelta(seconds=seconds),
+                        ended_at=start+timedelta(seconds=seconds+10) if outcome!='in_progress' else None,outcome=outcome)
+                    add(attempt)
+                    emit('attempt_started',seconds,attempt)
+                    emit('operation_succeeded' if outcome=='success' else 'operation_failed',seconds+5,attempt,
+                         operation={'stack':'pop','queue':'dequeue','tree':'select_node'}[topic],
+                         failure_reason='' if outcome=='success' else 'wrong_order')
+                    if outcome!='in_progress': emit('attempt_succeeded' if outcome=='success' else 'attempt_failed',seconds+10,attempt)
+                    if number<count: emit('hint',seconds+11,hint_id=f'{topic}-help',hint_step=1)
+                if end: emit('task_completed' if status=='completed' else 'task_abandoned',duration)
+        created = 0
+        for model, items in documents.items():
+            if items:
+                result = collection(model).bulk_write([UpdateOne({'_id':key},{'$setOnInsert':value},upsert=True)
+                                                      for key,value in items.items()])
+                created += result.upserted_count
+        self.stdout.write(self.style.SUCCESS(f'MongoDB demo: {created} new documents. Existing records preserved.'))

@@ -1,21 +1,11 @@
 from collections import defaultdict
 from datetime import datetime, time, timedelta
 from django.utils import timezone
-from .models import TaskRun, BehaviorEvent
+from .mongo import Records
 
 
 def selected_runs(form, players):
-    if not form.is_valid():
-        return TaskRun.objects.none()
-    data = form.cleaned_data
-    start = timezone.make_aware(datetime.combine(data['start'], time.min))
-    end = timezone.make_aware(datetime.combine(data['end'] + timedelta(days=1), time.min))
-    runs = TaskRun.objects.filter(session__player__in=players, started_at__gte=start, started_at__lt=end)
-    filters = {'topic': 'task__topic', 'task_id': 'task__task_id', 'content_version': 'task__content_version'}
-    for field, lookup in filters.items():
-        if data[field]:
-            runs = runs.filter(**{lookup: data[field]})
-    return runs
+    return getattr(form, 'mongo_runs', Records())
 
 
 def learning_report(form, players):
@@ -64,7 +54,7 @@ def learning_report(form, players):
         times = row.pop('active_times')
         row['avg_active_seconds'] = round(sum(times) / len(times) / 1000, 1) if times else None
     # A run cohort is followed to completion; these failures may occur after the selected end date.
-    failure_rows = BehaviorEvent.objects.filter(run__in=[r.pk for r in runs], event_type='operation_failed').values_list('operation', 'failure_reason')
+    failure_rows = [(event.operation, event.failure_reason) for run in runs for event in run.events.all() if event.event_type == 'operation_failed']
     failures = defaultdict(int)
     for operation, reason in failure_rows:
         failures[(operation or 'unknown', reason or 'unknown')] += 1

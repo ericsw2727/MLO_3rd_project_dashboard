@@ -14,10 +14,14 @@ def required(name):
 
 SECRET_KEY = required('DJANGO_SECRET_KEY')
 ADMIN_REGISTRATION_CODE = os.getenv('ADMIN_REGISTRATION_CODE', '')
+GAME_SERVER_API_KEY = os.getenv('GAME_SERVER_API_KEY', '')
+MONGODB_URI = os.getenv('MONGODB_URI', '')
+MONGODB_DATABASE = os.getenv('MONGODB_DATABASE', 'nodeverse_logs')
 DEBUG = os.getenv('DJANGO_DEBUG', 'False').lower() == 'true'
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 INSTALLED_APPS = ['django.contrib.auth', 'django.contrib.contenttypes', 'django.contrib.sessions', 'django.contrib.staticfiles', 'accounts', 'telemetry']
 MIDDLEWARE = [
+    'telemetry.mongo.MongoAvailabilityMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -25,6 +29,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
 ]
 ROOT_URLCONF = 'config.urls'
+TEST_RUNNER = 'telemetry.test_runner.HybridTestRunner'
 TEMPLATES = [{'BACKEND': 'django.template.backends.django.DjangoTemplates', 'DIRS': [BASE_DIR / 'templates'], 'APP_DIRS': True,
               'OPTIONS': {'context_processors': ['django.template.context_processors.request', 'django.contrib.auth.context_processors.auth']}}]
 WSGI_APPLICATION = 'config.wsgi.application'

@@ -5,13 +5,18 @@ from django.db.models import Q, F
 
 class Player(models.Model):
     """Analysis subject, with no password, role, or web-login capabilities."""
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    external_id = models.CharField(max_length=150, unique=True)
-    display_name = models.CharField(max_length=80)
-    source = models.CharField(max_length=8, choices=[('live', '실제'), ('demo', '데모')], default='live')
-    created_at = models.DateTimeField(auto_now_add=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False,
+                          db_column='member_id', db_comment='대시보드 회원 UUID. MongoDB의 player_id와 연결')
+    external_id = models.CharField(max_length=150, unique=True, db_column='external_member_key',
+                                   db_comment='외부 회원 연결 키. 예: game:member:게임서버회원ID')
+    display_name = models.CharField(max_length=80, db_column='nickname', db_comment='게임 회원 표시 이름')
+    source = models.CharField(max_length=8, choices=[('live', '실제'), ('demo', '데모')], default='live',
+                              db_column='data_source', db_comment='live: 실제 회원, demo: 데모 데이터')
+    created_at = models.DateTimeField(auto_now_add=True, db_column='registered_at', db_comment='대시보드에 최초 등록된 시각')
 
     class Meta:
+        db_table = 'game_members'
+        db_table_comment = '게임 회원 식별 정보. 비밀번호와 플레이 로그는 저장하지 않음'
         constraints = [models.CheckConstraint(condition=Q(source__in=['live', 'demo']), name='player_source_valid')]
 
 
@@ -28,6 +33,8 @@ class PlaySession(models.Model):
     duration_ms = models.PositiveIntegerField(null=True, blank=True)
 
     class Meta:
+        db_table = 'game_sessions'
+        managed = False  # Stored by telemetry.mongo, never in MySQL.
         indexes = [models.Index(fields=['player', 'started_at'], name='session_player_time'),
                    models.Index(fields=['started_at', 'topic'], name='session_time_topic')]
         constraints = [models.CheckConstraint(condition=Q(topic__in=['stack', 'queue', 'tree']), name='session_topic_valid'),
@@ -42,6 +49,8 @@ class LearningTask(models.Model):
     title = models.CharField(max_length=120)
     topic = models.CharField(max_length=10, choices=PlaySession.TOPICS)
     class Meta:
+        db_table = 'game_problems'
+        managed = False
         constraints = [models.UniqueConstraint(fields=['task_id', 'content_version'], name='task_version_unique')]
 
 
@@ -64,6 +73,8 @@ class TaskRun(models.Model):
             if self.paused_ms > elapsed or (self.active_ms is not None and self.active_ms + self.paused_ms != elapsed):
                 raise ValidationError('실제 풀이 시간과 일시정지 시간이 전체 경과 시간과 맞지 않습니다.')
     class Meta:
+        db_table = 'problem_runs'
+        managed = False
         indexes = [models.Index(fields=['task', 'started_at'], name='task_run_time')]
         constraints = [models.CheckConstraint(condition=Q(status__in=['completed', 'abandoned', 'in_progress']), name='run_status_valid'),
                        models.CheckConstraint(condition=Q(ended_at__isnull=True) | Q(ended_at__gte=F('started_at')), name='run_time_valid')]
@@ -77,6 +88,8 @@ class SolveAttempt(models.Model):
     ended_at = models.DateTimeField(null=True, blank=True)
     outcome = models.CharField(max_length=12, choices=[('success', '성공'), ('failure', '실패'), ('abandoned', '포기'), ('in_progress', '진행 중')])
     class Meta:
+        db_table = 'solution_attempts'
+        managed = False
         constraints = [models.UniqueConstraint(fields=['run', 'number'], name='attempt_number_unique'),
                        models.CheckConstraint(condition=Q(number__gte=1), name='attempt_number_positive'),
                        models.CheckConstraint(condition=Q(outcome__in=['success', 'failure', 'abandoned', 'in_progress']), name='attempt_outcome_valid'),
@@ -105,6 +118,8 @@ class BehaviorEvent(models.Model):
     payload = models.JSONField(default=dict, blank=True)
 
     class Meta:
+        db_table = 'gameplay_events'
+        managed = False
         ordering = ['occurred_at', 'sequence', 'id']
         indexes = [models.Index(fields=['session', 'occurred_at'], name='event_session_time'),
                    models.Index(fields=['occurred_at', 'event_type'], name='event_time_type')]

@@ -1,0 +1,284 @@
+{
+  "date": "2026-11-09",
+  "mysql": [
+    {
+      "name": "admin_accounts",
+      "columns": [
+        "password_hash",
+        "last_login_at",
+        "is_superuser",
+        "login_id",
+        "first_name",
+        "last_name",
+        "email",
+        "is_staff",
+        "is_active",
+        "created_at",
+        "admin_id",
+        "nickname",
+        "account_role",
+        "updated_at"
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "admin_group_memberships",
+      "columns": [
+        "id",
+        "user_id",
+        "group_id"
+      ],
+      "foreign_keys": [
+        {
+          "columns": [
+            "group_id"
+          ],
+          "target": [
+            "auth_group",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "user_id"
+          ],
+          "target": [
+            "admin_accounts",
+            "admin_id"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "admin_permission_assignments",
+      "columns": [
+        "id",
+        "user_id",
+        "permission_id"
+      ],
+      "foreign_keys": [
+        {
+          "columns": [
+            "permission_id"
+          ],
+          "target": [
+            "auth_permission",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "user_id"
+          ],
+          "target": [
+            "admin_accounts",
+            "admin_id"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "auth_group",
+      "columns": [
+        "id",
+        "name"
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "auth_group_permissions",
+      "columns": [
+        "id",
+        "group_id",
+        "permission_id"
+      ],
+      "foreign_keys": [
+        {
+          "columns": [
+            "group_id"
+          ],
+          "target": [
+            "auth_group",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "permission_id"
+          ],
+          "target": [
+            "auth_permission",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "auth_permission",
+      "columns": [
+        "id",
+        "name",
+        "content_type_id",
+        "codename"
+      ],
+      "foreign_keys": [
+        {
+          "columns": [
+            "content_type_id"
+          ],
+          "target": [
+            "django_content_type",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "django_content_type",
+      "columns": [
+        "id",
+        "app_label",
+        "model"
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "django_migrations",
+      "columns": [
+        "id",
+        "app",
+        "name",
+        "applied"
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "django_session",
+      "columns": [
+        "session_key",
+        "session_data",
+        "expire_date"
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "game_members",
+      "columns": [
+        "member_id",
+        "external_member_key",
+        "nickname",
+        "data_source",
+        "registered_at"
+      ],
+      "foreign_keys": []
+    }
+  ],
+  "mongodb": [
+    {
+      "name": "game_sessions",
+      "fields": [
+        "_id",
+        "player_id",
+        "topic",
+        "level",
+        "game_version",
+        "started_at",
+        "ended_at",
+        "status",
+        "duration_ms"
+      ],
+      "unique_indexes": []
+    },
+    {
+      "name": "game_problems",
+      "fields": [
+        "_id",
+        "task_id",
+        "content_version",
+        "title",
+        "topic"
+      ],
+      "unique_indexes": [
+        [
+          [
+            "task_id",
+            1
+          ],
+          [
+            "content_version",
+            1
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "problem_runs",
+      "fields": [
+        "_id",
+        "session_id",
+        "task_id",
+        "started_at",
+        "ended_at",
+        "status",
+        "active_ms",
+        "paused_ms"
+      ],
+      "unique_indexes": []
+    },
+    {
+      "name": "solution_attempts",
+      "fields": [
+        "_id",
+        "run_id",
+        "number",
+        "started_at",
+        "ended_at",
+        "outcome"
+      ],
+      "unique_indexes": [
+        [
+          [
+            "run_id",
+            1
+          ],
+          [
+            "number",
+            1
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "gameplay_events",
+      "fields": [
+        "_id",
+        "session_id",
+        "sequence",
+        "event_type",
+        "run_id",
+        "attempt_id",
+        "operation",
+        "failure_reason",
+        "state_before",
+        "state_after",
+        "hint_id",
+        "hint_step",
+        "occurred_at",
+        "received_at",
+        "payload"
+      ],
+      "unique_indexes": [
+        [
+          [
+            "session_id",
+            1
+          ],
+          [
+            "sequence",
+            1
+          ]
+        ]
+      ]
+    }
+  ]
+}

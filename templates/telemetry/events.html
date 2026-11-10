@@ -1,1 +1,6 @@
-{% extends 'accounts/base.html' %}{% block content %}<span class="eyebrow">EVENT EXPLORER</span><h1>행동 로그 탐색</h1><p class="muted">발생 시각, 행동 유형, 플레이어로 기록을 좁혀 보세요.</p>{% include 'telemetry/filters.html' with show_event_filter=True %}<section class="card section"><h2>행동 이벤트</h2><p class="metric-note">최신 발생 시각 순 · 세션 안의 #번호는 실제 행동 순서를 나타냅니다.</p>{% include 'telemetry/event_table.html' with event_list=page %}{% include 'telemetry/pagination.html' %}</section>{% endblock %}
+{% extends 'accounts/base.html' %}{% block content %}
+<div class="page-heading"><div><span class="eyebrow">ACTIVITY EXPLORER</span><h1>행동 로그 탐색<span class="heading-dot">.</span></h1><p class="subtitle">시도, 연산, 힌트까지. 학습이 일어난 순간을 따라가 보세요.</p></div><a class="btn secondary" href="{% url 'guide' %}">이벤트 지표 가이드 ↗</a></div>
+{% include 'telemetry/filters.html' with show_event_filter=True %}
+<section class="card section data-table-card"><div class="section-head"><div><span class="eyebrow">EVENT TIMELINE</span><h2>행동 이벤트 <span class="count-badge">{{ page.paginator.count }}건</span></h2></div><span class="section-caption">세션의 #번호는 실제 행동 순서입니다</span></div>
+{% include 'telemetry/table_controls.html' %}
+{% include 'telemetry/event_table.html' with event_list=page %}{% include 'telemetry/pagination.html' %}</section>{% endblock %}

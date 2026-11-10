@@ -11,16 +11,17 @@
 - 문제 해결·포기·재시도·힌트·실패 원인·풀이 시간 분석과 차트
 - 문제 실행 기록 CSV 내보내기
 - 관리자 전용 조회 API와 합성 데모 데이터 생성 명령
+- 게임 서버의 로그인 완료 회원 정보 수신 및 실제 플레이어 연결 ([연동 규약](docs/game-login-integration.md))
 - 데이터 모델, 이벤트 규약, SQL 참고 자료 및 팀 공유 문서
 
-**현재 실행 애플리케이션은 Django + MySQL 구성입니다.** Unity 클라이언트, 외부 이벤트 수집 API, MongoDB 저장소와 파이프라인 진단 연동은 이 저장소에서 구현된 기능이 아닙니다. `docs/team_handoff`의 이벤트 규약 3.0은 팀 검토용 제안이며, 배포된 API 명세나 기존 2.0 규약의 대체물이 아닙니다.
+**현재 실행 애플리케이션은 Django + MySQL + MongoDB 구성입니다.** 회원·관리자 정보는 MySQL, 플레이 세션·문제 정의·문제 실행·풀이 시도·행동 이벤트는 MongoDB에 저장합니다. 게임 서버 전용 수집 API는 [MongoDB 연동 규약](docs/mongodb-integration.md)을 참고하세요. Unity 클라이언트와 파이프라인 진단 연동은 별도 구현 범위입니다. `docs/team_handoff`의 규약 3.0은 팀 검토용 제안입니다.
 
 ## 기술 구성
 
 | 구분 | 사용 기술 |
 | --- | --- |
 | 서버 | Python, Django 5.2 |
-| 데이터베이스 | MySQL, mysqlclient |
+| 데이터베이스 | MySQL (회원·관리자), MongoDB + PyMongo (학습 기록) |
 | 화면 | Django Templates, CSS, JavaScript |
 | 환경 설정 | python-dotenv |
 | 문서 생성 | ReportLab (별도 의존성) |
@@ -29,7 +30,7 @@
 
 ## 로컬 설치 및 실행
 
-아래 명령은 Windows PowerShell 기준입니다. Python과 MySQL 서버가 필요하며, `mysqlclient` 설치 시 환경에 따라 빌드 도구 또는 MySQL 클라이언트 개발 라이브러리가 필요할 수 있습니다.
+아래 명령은 Windows PowerShell 기준입니다. Python, MySQL 및 MongoDB 서버가 필요하며, `mysqlclient` 설치 시 환경에 따라 빌드 도구 또는 MySQL 클라이언트 개발 라이브러리가 필요할 수 있습니다.
 
 ### 1. 가상환경 및 의존성
 
@@ -57,6 +58,9 @@ Copy-Item .env.example .env
 | `MYSQL_HOST` / `MYSQL_PORT` | MySQL 주소 및 포트 |
 | `MYSQL_TEST_DATABASE` | 개발 DB와 다른 테스트 전용 DB 이름. 기본 `test_nodeverse` |
 | `ADMIN_REGISTRATION_CODE` | 관리자 가입 초대 코드. 비어 있으면 가입 불가 |
+| `GAME_SERVER_API_KEY` | 게임 서버 전용 회원·로그 API 인증 키 |
+| `MONGODB_URI` | 필수. MongoDB 접속 URI |
+| `MONGODB_DATABASE` | 로그 DB 이름. 기본 `nodeverse_logs` |
 
 비밀 키와 초대 코드는 다음 명령으로 각각 생성할 수 있습니다.
 
@@ -76,7 +80,10 @@ CREATE DATABASE nodeverse CHARACTER SET utf8mb4;
 
 ### 4. 마이그레이션 및 서버 실행
 
+먼저 [MongoDB 준비 방법](docs/mongodb-setup.md)에 따라 접속 정보를 설정합니다. `0005` 마이그레이션은 기존 MySQL 로그를 MongoDB에 복사·검증한 뒤 MySQL 로그 테이블 5개를 제거합니다. MongoDB 접속 실패나 기존 문서 충돌 시 테이블 삭제 전에 중단됩니다. 작업 중에는 앱을 중지하고 DB를 백업하세요. 자동 역방향 마이그레이션은 데이터 유실 방지를 위해 차단됩니다.
+
 ```powershell
+.\.venv\Scripts\python.exe manage.py check_mongodb
 .\.venv\Scripts\python.exe manage.py migrate
 .\.venv\Scripts\python.exe manage.py runserver
 ```
@@ -86,6 +93,8 @@ CREATE DATABASE nodeverse CHARACTER SET utf8mb4;
 3. `http://127.0.0.1:8000/staff/`에서 분석 화면을 확인합니다.
 
 관리자 로그인 계정과 분석 대상 `Player`는 분리되어 있습니다. 데모 데이터 생성 명령은 로그인 계정을 만들지 않습니다. Django 기본 `/admin/` 화면은 연결되어 있지 않습니다.
+
+로컬 실행 확인 시 로그인 화면의 **관리자 테스트 로그인** 버튼을 사용할 수 있습니다. `DEBUG=True`이고 localhost/127.0.0.1에서 직접 접속할 때만 표시·동작하며, CSRF가 적용된 POST 요청으로 테스트 관리자 계정을 만들거나 재사용합니다. 테스트 계정에는 사용 가능한 비밀번호와 superuser 권한을 부여하지 않으며 로그인은 1시간 유지됩니다. 게임 회원·데모 로그는 만들지 않습니다. `DEBUG=False`에서는 테스트 버튼과 기존 테스트 계정 세션 모두 비활성화됩니다.
 
 ## 데모 데이터
 
@@ -131,6 +140,8 @@ CREATE DATABASE nodeverse CHARACTER SET utf8mb4;
 분석 API는 `start`, `end`, `source`, `topic`, `player_id`, `q`, `task_id`, `content_version` 등의 쿼리 필터를 지원합니다. 이벤트 목록에는 `event_type`을 사용할 수 있습니다.
 
 ## 데이터 구조
+
+실제 저장 이름은 [데이터 이름 안내](docs/database-names.md)를 참고하세요. 회원은 MySQL, 학습 기록과 대시보드 지표는 MongoDB를 사용합니다. [MongoDB 준비 방법](docs/mongodb-setup.md)과 [수집 API 규약](docs/mongodb-integration.md)을 참고하세요.
 
 | 모델 | 역할 |
 | --- | --- |
@@ -178,7 +189,7 @@ manage.py       Django 관리 명령 진입점
 .\.venv\Scripts\python.exe manage.py test accounts telemetry
 ```
 
-기존 테스트는 관리자 인증·권한·CSRF, 분석 필터·집계, 데이터 제약, 이벤트 검증, 데모 생성의 중복 방지, 차트 및 CSV 접근 제어 등을 다룹니다. 전체 테스트는 전용 MySQL 테스트 DB를 생성·삭제합니다.
+테스트는 관리자 인증·권한·CSRF, 분석 필터·집계, 이벤트 검증, 중복 방지, 차트·CSV 및 게임 서버 수집을 다룹니다. 전용 SQL 테스트 DB와 무작위 이름의 MongoDB 테스트 DB를 생성·삭제합니다. 개발 로그 DB에는 테스트 데이터를 쓰지 않습니다.
 
 ## Git 업로드
 

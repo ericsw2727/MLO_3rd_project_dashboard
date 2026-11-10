@@ -15,13 +15,13 @@ import csv
 
 
 def context(request, player=None):
-    form, players, sessions, events = selection(request.GET, player)
+    filter_form, players, sessions, events = selection(request.GET, player)
     params = request.GET.copy()
     params.pop('page', None)
-    return {'filter': form, 'stats': summary(players, sessions, events), 'querystring': params.urlencode(),
+    return {'filter': filter_form, 'stats': summary(players, sessions, events), 'querystring': params.urlencode(),
             'today': timezone.localdate().isoformat(), 'week_start': (timezone.localdate()-timedelta(days=6)).isoformat(),
             'month_start': (timezone.localdate()-timedelta(days=27)).isoformat(),
-            'topics': topic_breakdown(events), 'learning': learning_report(form, players)}, players, sessions, events
+            'topics': topic_breakdown(events), 'learning': learning_report(filter_form, players)}, players, sessions, events
 
 
 @require_GET
@@ -30,7 +30,7 @@ def dashboard_page(request):
     scope = request.GET.get('scope', 'overview')
     if scope not in ('overview', 'game', 'player'):
         scope = 'overview'
-    ctx, players, sessions, events = context(request)
+    page_context, players, sessions, events = context(request)
     tabs = []
     for key, label in [('overview', '전체 종합'), ('game', '게임별'), ('player', '플레이어별')]:
         params = request.GET.copy()
@@ -38,7 +38,7 @@ def dashboard_page(request):
             params.pop(field, None)
         params['scope'] = key
         tabs.append({'key': key, 'label': label, 'url': '?' + params.urlencode()})
-    ctx.update({'scope': scope, 'analysis_tabs': tabs,
+    page_context.update({'scope': scope, 'analysis_tabs': tabs,
                 'scope_title': {'overview': '전체 종합 분석', 'game': '게임별 분석', 'player': '플레이어별 분석'}[scope],
                 'scope_description': {'overview': '전체 플레이 현황과 게임 간 차이를 확인하세요.',
                     'game': '게임을 선택해 문제와 실패 원인을 살펴보세요.',
@@ -55,7 +55,7 @@ def dashboard_page(request):
             game_events = comparison_events.filter(session__topic=key)
             rows.append({'label': label, 'url': '?' + params.urlencode(),
                          'stats': summary(comparison_players, game_sessions, game_events)})
-        ctx['game_rows'] = rows
+        page_context['game_rows'] = rows
     else:
         page = Paginator(players.order_by('display_name', 'id'), 10).get_page(request.GET.get('page'))
         rows = player_rows(page.object_list, sessions, events)
@@ -64,44 +64,53 @@ def dashboard_page(request):
             params.pop('page', None)
             params['player_id'] = str(row['player'].pk)
             row['url'] = '?' + params.urlencode()
-        ctx.update({'player_rows': rows, 'page': page})
-        if ctx['filter'].is_valid():
-            ctx['selected_player'] = ctx['filter'].cleaned_data['player_id']
-    ctx['show_analysis'] = scope != 'player' or bool(ctx.get('selected_player'))
-    ctx['recent_events'] = events.select_related('session__player', 'run__task', 'attempt').order_by('-occurred_at', '-sequence')[:8]
-    if ctx['show_analysis']:
-        ctx['visuals'] = visual_report(ctx['filter'], players, events)
-    return render(request, 'telemetry/dashboard.html', ctx)
+        page_context.update({'player_rows': rows, 'page': page})
+        if page_context['filter'].is_valid():
+            page_context['selected_player'] = page_context['filter'].cleaned_data['player_id']
+    page_context['show_analysis'] = scope != 'player' or bool(page_context.get('selected_player'))
+    page_context['recent_events'] = events.select_related('session__player', 'run__task', 'attempt').order_by('-occurred_at', '-sequence')[:8]
+    if page_context['show_analysis']:
+        page_context['visuals'] = visual_report(page_context['filter'], players, events)
+    return render(request, 'telemetry/dashboard.html', page_context)
 
 
 @require_GET
 @admin_page
 def players_page(request):
-    ctx, players, sessions, events = context(request)
-    page = Paginator(players.order_by('display_name', 'id'), 10).get_page(request.GET.get('page'))
-    ctx.update({'page': page, 'rows': player_rows(page.object_list, sessions, events)})
-    return render(request, 'telemetry/players.html', ctx)
+    page_context, players, sessions, events = context(request)
+    sort_options = [('name', '이름 오름차순'), ('name_desc', '이름 내림차순'), ('recent', '최근 등록순')]
+    selected_sort = request.GET.get('sort', 'name')
+    ordering = {'name': ('display_name', 'id'), 'name_desc': ('-display_name', 'id'), 'recent': ('-created_at', 'id')}
+    if selected_sort not in ordering:
+        selected_sort = 'name'
+    page = Paginator(players.order_by(*ordering[selected_sort]), 10).get_page(request.GET.get('page'))
+    page_context.update({'page': page, 'rows': player_rows(page.object_list, sessions, events),
+                         'sort_options': sort_options, 'selected_sort': selected_sort})
+    return render(request, 'telemetry/players.html', page_context)
 
 
 @require_GET
 @admin_page
 def player_page(request, player_id):
     player = get_object_or_404(Player, pk=player_id)
-    ctx, players, sessions, events = context(request, player)
-    ctx.update({'player': player, 'sessions': sessions.order_by('-started_at')[:20],
+    page_context, players, sessions, events = context(request, player)
+    page_context.update({'player': player, 'sessions': sessions.order_by('-started_at')[:20],
                 'page': Paginator(events.select_related('session__player','run__task','attempt').order_by('-occurred_at', '-sequence'), 20).get_page(request.GET.get('page'))})
-    ctx['visuals'] = visual_report(ctx['filter'], players, events)
-    return render(request, 'telemetry/player.html', ctx)
+    page_context['visuals'] = visual_report(page_context['filter'], players, events)
+    return render(request, 'telemetry/player.html', page_context)
 
 
 @require_GET
 @admin_page
 def events_page(request):
-    ctx, players, sessions, events = context(request)
-    if ctx['filter'].is_valid() and ctx['filter'].cleaned_data['event_type']:
-        events = events.filter(event_type=ctx['filter'].cleaned_data['event_type'])
-    ctx['page'] = Paginator(events.select_related('session__player','run__task','attempt').order_by('-occurred_at', '-sequence'), 30).get_page(request.GET.get('page'))
-    return render(request, 'telemetry/events.html', ctx)
+    page_context, players, sessions, events = context(request)
+    if page_context['filter'].is_valid() and page_context['filter'].cleaned_data['event_type']:
+        events = events.filter(event_type=page_context['filter'].cleaned_data['event_type'])
+    selected_sort = 'oldest' if request.GET.get('sort') == 'oldest' else 'recent'
+    ordering = ('occurred_at', 'sequence', 'id') if selected_sort == 'oldest' else ('-occurred_at', '-sequence', '-id')
+    page_context['page'] = Paginator(events.select_related('session__player','run__task','attempt').order_by(*ordering), 30).get_page(request.GET.get('page'))
+    page_context.update({'sort_options': [('recent', '최신 발생순'), ('oldest', '오래된 발생순')], 'selected_sort': selected_sort})
+    return render(request, 'telemetry/events.html', page_context)
 
 
 def player_data(player):
@@ -123,19 +132,19 @@ def event_data(event):
 
 @api('GET', authenticated=True)
 def summary_api(request):
-    form, players, sessions, events = selection(request.GET)
-    if not form.is_valid():
-        return JsonResponse({'errors': form.errors.get_json_data()}, status=400)
+    filter_form, players, sessions, events = selection(request.GET)
+    if not filter_form.is_valid():
+        return JsonResponse({'errors': filter_form.errors.get_json_data()}, status=400)
     return JsonResponse({'summary': summary(players, sessions, events), 'topics': topic_breakdown(events),
-                         'learning': learning_report(form, players)})
+                         'learning': learning_report(filter_form, players)})
 
 
 @api('GET', authenticated=True)
 def visuals_api(request):
-    form, players, sessions, events = selection(request.GET)
-    if not form.is_valid():
-        return JsonResponse({'errors': form.errors.get_json_data()}, status=400)
-    return JsonResponse(visual_report(form, players, events))
+    filter_form, players, sessions, events = selection(request.GET)
+    if not filter_form.is_valid():
+        return JsonResponse({'errors': filter_form.errors.get_json_data()}, status=400)
+    return JsonResponse(visual_report(filter_form, players, events))
 
 
 @require_GET
@@ -147,15 +156,15 @@ def guide_page(request):
 @require_GET
 @admin_page
 def export_runs(request):
-    form, players, sessions, events = selection(request.GET)
-    if not form.is_valid():
-        return JsonResponse({'errors': form.errors.get_json_data()}, status=400)
+    filter_form, players, sessions, events = selection(request.GET)
+    if not filter_form.is_valid():
+        return JsonResponse({'errors': filter_form.errors.get_json_data()}, status=400)
     response=HttpResponse(content_type='text/csv; charset=utf-8')
     response['Content-Disposition']='attachment; filename="nodeverse-runs.csv"'
     response.write('\ufeff')
     writer=csv.writer(response)
     writer.writerow(['player_id','display_name','source','run_id','task_id','version','status','started_at','active_seconds','paused_seconds'])
-    for run in selected_runs(form,players).select_related('session__player','task').order_by('started_at','id').iterator():
+    for run in selected_runs(filter_form,players).select_related('session__player','task').order_by('started_at','id').iterator():
         row=[run.session.player_id,run.session.player.display_name,run.session.player.source,run.pk,run.task.task_id,
                          run.task.content_version,run.status,run.started_at.isoformat(),
                          run.active_ms/1000 if run.active_ms is not None else '',run.paused_ms/1000]
@@ -165,9 +174,9 @@ def export_runs(request):
 
 @api('GET', authenticated=True)
 def players_api(request):
-    form, players, sessions, events = selection(request.GET)
-    if not form.is_valid():
-        return JsonResponse({'errors': form.errors.get_json_data()}, status=400)
+    filter_form, players, sessions, events = selection(request.GET)
+    if not filter_form.is_valid():
+        return JsonResponse({'errors': filter_form.errors.get_json_data()}, status=400)
     page = Paginator(players.order_by('display_name', 'id'), 10).get_page(request.GET.get('page'))
     return JsonResponse({'count': page.paginator.count, 'page': page.number, 'results': [
         {**player_data(row['player']), **{k: v for k, v in row.items() if k != 'player'}}
@@ -179,19 +188,19 @@ def player_api(request, player_id):
     player = Player.objects.filter(pk=player_id).first()
     if player is None:
         return JsonResponse({'error': 'not_found'}, status=404)
-    form, players, sessions, events = selection(request.GET, player)
-    if not form.is_valid():
-        return JsonResponse({'errors': form.errors.get_json_data()}, status=400)
+    filter_form, players, sessions, events = selection(request.GET, player)
+    if not filter_form.is_valid():
+        return JsonResponse({'errors': filter_form.errors.get_json_data()}, status=400)
     return JsonResponse({'player': player_data(player), 'summary': summary(players, sessions, events),
-                         'topics': topic_breakdown(events), 'learning': learning_report(form, players)})
+                         'topics': topic_breakdown(events), 'learning': learning_report(filter_form, players)})
 
 
 @api('GET', authenticated=True)
 def events_api(request):
-    form, players, sessions, events = selection(request.GET)
-    if not form.is_valid():
-        return JsonResponse({'errors': form.errors.get_json_data()}, status=400)
-    if form.cleaned_data['event_type']:
-        events = events.filter(event_type=form.cleaned_data['event_type'])
+    filter_form, players, sessions, events = selection(request.GET)
+    if not filter_form.is_valid():
+        return JsonResponse({'errors': filter_form.errors.get_json_data()}, status=400)
+    if filter_form.cleaned_data['event_type']:
+        events = events.filter(event_type=filter_form.cleaned_data['event_type'])
     page = Paginator(events.select_related('session__player','run__task','attempt').order_by('-occurred_at', '-sequence'), 30).get_page(request.GET.get('page'))
     return JsonResponse({'count': page.paginator.count, 'page': page.number, 'results': [event_data(event) for event in page]})

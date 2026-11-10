@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-09",
+  "mysql_host": "192.168.0.167",
+  "mysql_database": "nodeverse",
+  "mongodb_host": "192.168.0.167",
+  "mongodb_database": "nodeverse_logs",
+  "mysql_tables": [
+    "admin_accounts",
+    "admin_group_memberships",
+    "admin_permission_assignments",
+    "auth_group",
+    "auth_group_permissions",
+    "auth_permission",
+    "django_content_type",
+    "django_migrations",
+    "django_session",
+    "game_members"
+  ],
+  "mongodb_collections": [
+    "game_problems",
+    "problem_runs",
+    "solution_attempts",
+    "gameplay_events",
+    "game_sessions"
+  ],
+  "game_api_enabled": false,
+  "sender_ip": "192.168.0.81",
+  "dashboard_ip": "192.168.0.29",
+  "direct_ingestion_status": "package reviewed; actual loading and stream integration not verified"
+}

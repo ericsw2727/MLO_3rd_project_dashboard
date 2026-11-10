@@ -25,9 +25,74 @@ class PublicContractTests(SimpleTestCase):
         self.assertEqual(self.client.post('/register/', {}).status_code, 405)
 
 
+@override_settings(DEBUG=True)
+class LocalTestAdminTests(TestCase):
+    def test_button_csrf_login_and_account_reuse(self):
+        from .development import TEST_ADMIN_ID
+        client = Client(enforce_csrf_checks=True)
+        self.assertContains(client.get('/staff/login/', HTTP_HOST='localhost'), '/staff/test-login/')
+        self.assertFalse(User.objects.exists())
+        self.assertEqual(client.post('/staff/test-login/', HTTP_HOST='localhost').status_code, 403)
+        token = client.cookies['csrftoken'].value
+        response = client.post('/staff/test-login/', HTTP_HOST='localhost', HTTP_X_CSRFTOKEN=token)
+        self.assertRedirects(response, '/staff/', fetch_redirect_response=False)
+        account = User.objects.get(pk=TEST_ADMIN_ID)
+        self.assertFalse(account.has_usable_password())
+        self.assertFalse(account.is_superuser)
+        self.assertEqual(client.get('/api/auth/me').json()['user']['user_id'], str(TEST_ADMIN_ID))
+        self.assertEqual(client.session.get_expiry_age(), 3600)
+        token = client.cookies['csrftoken'].value
+        self.assertEqual(client.post('/staff/test-login/', HTTP_HOST='localhost', HTTP_X_CSRFTOKEN=token).status_code, 302)
+        self.assertEqual(User.objects.count(), 1)
+        with override_settings(DEBUG=False):
+            self.assertEqual(client.get('/api/auth/me').status_code, 401)
+
+    def test_external_production_and_proxy_requests_are_denied(self):
+        for extra in [
+            {'REMOTE_ADDR': '192.168.0.50', 'HTTP_HOST': 'localhost'},
+            {'HTTP_HOST': 'testserver'},
+            {'HTTP_HOST': 'localhost', 'HTTP_X_FORWARDED_FOR': '192.168.0.50'},
+        ]:
+            self.assertNotContains(self.client.get('/staff/login/', **extra), '/staff/test-login/')
+            self.assertEqual(self.client.post('/staff/test-login/', **extra).status_code, 403)
+        with override_settings(DEBUG=False):
+            self.assertNotContains(self.client.get('/staff/login/', HTTP_HOST='localhost'), '/staff/test-login/')
+            self.assertEqual(self.client.post('/staff/test-login/', HTTP_HOST='localhost').status_code, 403)
+        self.assertFalse(User.objects.exists())
+        self.assertEqual(self.client.get('/staff/test-login/', HTTP_HOST='localhost').status_code, 405)
+
+    def test_disabled_account_is_not_reactivated(self):
+        from .development import TEST_ADMIN_ID, TEST_ADMIN_USERNAME
+        account = User(id=TEST_ADMIN_ID, username=TEST_ADMIN_USERNAME, role='admin', is_active=False)
+        account.set_unusable_password()
+        account.save()
+        self.assertEqual(self.client.post('/staff/test-login/', HTTP_HOST='localhost').status_code, 403)
+        account.refresh_from_db()
+        self.assertFalse(account.is_active)
+
+
 @override_settings(ADMIN_REGISTRATION_CODE='test-invite-only')
 class AdminAuthTests(TestCase):
     password = 'Admin-Only!4972'
+
+    def test_readable_sql_names_preserve_auth_and_permission_relations(self):
+        from django.contrib.auth.models import Group, Permission
+        from django.db import connection
+        user = User.objects.create_user('schema-admin', password=self.password, display_name='Schema admin')
+        group = Group.objects.create(name='Schema operators')
+        permission = Permission.objects.filter(codename='view_user', content_type__app_label='accounts').get()
+        user.groups.add(group)
+        group.permissions.add(permission)
+        user.user_permissions.add(permission)
+        self.assertTrue(user.has_perm('accounts.view_user'))
+        self.assertTrue(user.check_password(self.password))
+        with connection.cursor() as cursor:
+            columns = {column.name for column in connection.introspection.get_table_description(cursor, 'admin_accounts')}
+        self.assertTrue({'admin_id', 'login_id', 'password_hash', 'nickname', 'account_role', 'created_at', 'last_login_at'} <= columns)
+        self.assertEqual(user.groups.get().pk, group.pk)
+        self.assertEqual(user.user_permissions.get().pk, permission.pk)
+        self.assertIn('admin_group_memberships', connection.introspection.table_names())
+        self.assertIn('admin_permission_assignments', connection.introspection.table_names())
 
     def register(self, name='operator', **extra):
         return self.client.post('/api/auth/register', json.dumps({
@@ -91,7 +156,10 @@ class AdminAuthTests(TestCase):
         token = client.get('/api/auth/csrf').json()['csrf_token']
         response = client.post('/api/auth/login', json.dumps({'login_id': 'webadmin', 'password': self.password}), content_type='application/json', HTTP_X_CSRFTOKEN=token)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(client.get('/staff/'), '플레이에서 배움을 읽다')
+        dashboard = client.get('/staff/')
+        self.assertEqual(dashboard.status_code, 200)
+        self.assertTemplateUsed(dashboard, 'telemetry/dashboard.html')
+        self.assertEqual(dashboard.wsgi_request.user.username, 'webadmin')
         self.assertEqual(client.post('/api/auth/logout', '{}', content_type='application/json').status_code, 403)
         self.assertEqual(client.post('/api/auth/logout', '{}', content_type='application/json', HTTP_X_CSRFTOKEN=response.json()['csrf_token']).status_code, 200)
 

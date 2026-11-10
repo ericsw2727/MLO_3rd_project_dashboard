@@ -1,0 +1,68 @@
+NODEVERSE - 송신 PC 192.168.0.81 접속 준비
+작성일: 2026-11-09
+
+현재 확인한 상태
+- 서버 DB: 192.168.0.167 / MySQL 3306 / MongoDB 27017
+- 대시보드 PC: 192.168.0.29
+- 현재 대시보드의 MySQL 계정에는 사용자 생성·권한 부여 권한이 없음
+- MongoDB authorization은 아직 비활성화 상태
+- 이 폴더의 파일은 준비만 했으며 계정·방화벽·인증 설정은 아직 변경하지 않았음
+
+1. 서버 PC의 MySQL Workbench에서 관리자(root 등)로 연결
+01_mysql_sender_192.168.0.81.sql을 열어 한 번 실행한다.
+첫 CREATE USER 결과에 표시되는 자동 생성 비밀번호를 안전하게 보관한다.
+nodeverse_ingest@192.168.0.81에 game_members의 SELECT/INSERT/UPDATE만 부여한다.
+기존 사용자 중복 오류가 나면 재생성·암호 변경을 임의로 하지 말고 상태를 확인한다.
+실제 비밀번호를 채팅·Git·이 폴더의 파일에 기록하지 않는다.
+
+2. 서버 PC의 mongosh에서 로컬 MongoDB에 연결
+02_mongodb_accounts.js 내용을 확인한 뒤 실행한다.
+예: mongosh "mongodb://127.0.0.1:27017/" --file "02_mongodb_accounts.js"
+비밀번호 세 개를 각각 로컬 프롬프트에 입력한다.
+- nodeverse_security_admin: 계정 관리용. 상대방에게 전달하지 않음.
+- nodeverse_ingest: 지정한 5개 컬렉션의 조회·추가·갱신·인덱스 조회 및 컬렉션 목록 조회.
+  MongoDB 인증 시 송신 원본 주소 192.168.0.81로 제한.
+- nodeverse_dashboard_reader: 현재 대시보드가 사용할 조회 전용 계정.
+인덱스 생성, 문서 삭제, 컬렉션 삭제 등은 적재 계정에 부여하지 않는다.
+이 스크립트는 자동 복구형이 아니다. 중간 실패 시 생성된 계정/역할을 먼저 확인한다.
+
+3. MongoDB 인증 활성화 전에 대시보드 접속 설정을 준비
+대시보드 PC의 .env에 아래 URI를 설정할 준비를 한다.
+MONGODB_URI=mongodb://nodeverse_dashboard_reader:<인코딩한비밀번호>@192.168.0.167:27017/nodeverse_logs?authSource=nodeverse_logs
+MONGODB_DATABASE=nodeverse_logs
+비밀번호의 URI 특수 문자는 퍼센트 인코딩한다.
+기존 인증 없는 URI는 authorization 활성화 후 조회가 실패하므로 반드시 함께 갱신한다.
+조회 전용 계정에서는 check_mongodb(인덱스 생성), 데모 생성, 이전 등의 쓰기 명령을 실행하지 않는다.
+관련 관리 작업과 테스트 DB 생성은 별도의 권한 계정/환경에서 수행한다.
+
+4. 서버 PC의 mongod.cfg에서 기존 설정을 유지하고 다음을 적용
+net:
+  port: 27017
+  bindIp: 127.0.0.1,192.168.0.167
+security:
+  authorization: enabled
+기존 net/security 블록을 중복 추가하지 말고 병합한다.
+관리 계정 생성과 비밀번호 보관을 확인한 뒤 MongoDB 서비스를 다시 시작한다.
+대시보드 .env도 준비한 인증 URI로 바꾸고 대시보드 서버를 다시 시작한다.
+인증 없는 컬렉션 조회가 거부되고, 대시보드 계정 조회가 성공하는지 확인한다.
+사용자만 만들어 놓고 authorization을 켜지 않으면 계정별 제한이 강제되지 않는다.
+
+5. 서버 PC Windows 방화벽 확인
+TCP 3306/27017의 송신 접속은 원격 주소 192.168.0.81에 허용한다.
+기존 대시보드 PC 192.168.0.29의 필요한 접속은 유지한다.
+이미 모든 원격 IP를 허용하는 규칙이 있으면 필요한 주소로 범위를 조정한다.
+좁은 허용 규칙을 추가하는 것만으로 기존의 넓은 허용 규칙이 취소되지는 않는다.
+현재 사용 중인 네트워크 프로필과 규칙을 서버 PC에서 확인한다.
+인터넷 포트포워딩은 이 작업에 필요하지 않다.
+
+6. 송신 측에 별도 경로로 전달
+MySQL: 192.168.0.167:3306 / nodeverse / nodeverse_ingest / 발급 비밀번호
+MongoDB: 아래 URI와 발급 비밀번호
+mongodb://nodeverse_ingest:<인코딩한비밀번호>@192.168.0.167:27017/nodeverse_logs?authSource=nodeverse_logs
+GAME_SERVER_API_KEY는 직접 DB 적재 방식에서 사용하지 않는다.
+
+7. 실제 적재 전
+송신 측에서 check까지만 먼저 실행한다. apply는 적재·시간 규칙을 맞춘 뒤 진행한다.
+전달받은 적재 코드의 active_ms/paused_ms 계산과 이벤트별 attempt_id 필수 여부를 먼저 조정해야 한다.
+한 세션은 동시에 여러 API/적재기로 수정하지 않는다.
+상대방의 시작안내/매핑 문서는 참고 자료이며 이 폴더가 실제 적재 실행을 승인하는 것은 아니다.
