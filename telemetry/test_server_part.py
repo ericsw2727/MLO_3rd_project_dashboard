@@ -293,3 +293,28 @@ class LiveApiTests(TestCase):
         self.assertEqual(learning.status_code, 200)
         self.assertContains(learning, f'href="/staff/members/{pid}/"')
         self.assertNotContains(page, '<span>게임 회원</span>')
+
+    def test_member_detail_shows_pipeline_play_by_install_id(self):
+        cache.clear()
+        self.client.post('/api/game/auth/register', json.dumps({'username': 'player9', 'password': 'secret-pass',
+                                                                'install_id': 'inst-play-9'}), content_type='application/json')
+        account = GameAccount.objects.get(username='player9')
+        now = timezone.now()
+        events = database().pipeline_learning_events
+        events.delete_many({'player_id': {'$in': ['inst-play-9', 'someone-else']}})
+        events.insert_many([
+            {'_id': 'p9-1', 'player_id': 'inst-play-9', 'minigame_id': 'ALG01', 'event_type': 'attempt_started', 'occurred_at': now - timedelta(seconds=5)},
+            {'_id': 'p9-2', 'player_id': 'inst-play-9', 'minigame_id': 'ALG01', 'event_type': 'attempt_failed', 'occurred_at': now - timedelta(seconds=4),
+             'details': {'operation': 'wrong_move', 'failure_reason': '교환하지 않았어요'}},
+            {'_id': 'p9-3', 'player_id': 'inst-play-9', 'minigame_id': 'ALG01', 'event_type': 'attempt_succeeded', 'occurred_at': now},
+            {'_id': 'other', 'player_id': 'someone-else', 'minigame_id': 'ST01', 'event_type': 'attempt_started', 'occurred_at': now},
+        ])
+        self.client.force_login(self.admin)
+        page = self.client.get(f'/staff/members/{account.player_id}/')
+        play = page.context['play']
+        self.assertEqual(play['total'], 3)
+        self.assertEqual([(g['code'], g['attempts'], g['succeeded'], g['failed'], g['rate']) for g in play['games']], [('ALG01', 1, 1, 1, 50)])
+        self.assertEqual(play['events'][0]['label'], '시도 성공')
+        self.assertContains(page, '교환하지 않았어요')
+        self.assertNotContains(page, 'someone-else')
+        events.delete_many({'_id': {'$in': ['p9-1', 'p9-2', 'p9-3', 'other']}})

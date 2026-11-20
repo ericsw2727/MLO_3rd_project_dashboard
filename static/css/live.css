@@ -73,3 +73,6 @@ td.low,.numeric.low{color:var(--red);font-weight:bold}
 .live-grid .bar-list{padding-top:4px}
 @media(max-width:1100px){.viz-grid.live-grid>.viz-card:not(.full){grid-column:1/-1}}
 .person-tabs{display:inline-flex;margin-top:14px}
+.play-timeline-title{margin:22px 0 10px}
+.play-timeline{max-height:520px;overflow:auto}
+.play-timeline td small,#play td small{display:block}

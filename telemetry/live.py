@@ -219,6 +219,52 @@ def members_page(request):
     })
 
 
+EVENT_LABELS = {
+    'problem_started': '문제 시작', 'problem_completed': '문제 완료', 'attempt_started': '시도 시작',
+    'attempt_succeeded': '시도 성공', 'attempt_failed': '시도 실패', 'operation_succeeded': '조작 성공',
+    'operation_failed': '조작 실패', 'hint_used': '힌트 사용',
+}
+
+
+def play_history(player, install_ids, limit=60):
+    """Pipeline learning events for one member, newest first, plus a per-minigame summary.
+
+    The game currently sends the install ID as player_id, so match on the member's
+    install IDs from login history as well as the member ID itself.
+    """
+    keys = {str(player.pk), player.pk.hex, *(i for i in install_ids if i)}
+    try:
+        docs = list(database().pipeline_learning_events.find(
+            {'player_id': {'$in': sorted(keys)}}, sort=[('occurred_at', -1)]).limit(2000))
+    except Exception:  # MongoDB down: the account page still renders
+        return {'available': False, 'events': [], 'games': [], 'total': 0, 'last': None}
+    games = {}
+    for d in docs:
+        code = d.get('minigame_id') or '—'
+        g = games.setdefault(code, {'code': code, 'title': CATALOG.get(code, {}).get('title', ''), 'attempts': 0,
+                                    'succeeded': 0, 'failed': 0, 'mistakes': 0, 'hints': 0, 'completed': 0, 'last': d.get('occurred_at')})
+        kind = d.get('event_type')
+        g['attempts'] += kind == 'attempt_started'
+        g['succeeded'] += kind == 'attempt_succeeded'
+        g['failed'] += kind == 'attempt_failed'
+        g['mistakes'] += kind == 'operation_failed'
+        g['hints'] += kind == 'hint_used'
+        g['completed'] += kind == 'problem_completed'
+    for g in games.values():
+        done = g['succeeded'] + g['failed']
+        g['rate'] = round(100 * g['succeeded'] / done) if done else None
+    events = []
+    for d in docs[:limit]:
+        details = d.get('details') or {}
+        events.append({'at': d.get('occurred_at'), 'code': d.get('minigame_id') or '—',
+                       'title': CATALOG.get(d.get('minigame_id'), {}).get('title', ''),
+                       'kind': d.get('event_type', ''), 'label': EVENT_LABELS.get(d.get('event_type'), d.get('event_type', '')),
+                       'operation': details.get('operation', ''), 'reason': details.get('failure_reason', ''),
+                       'build': d.get('build_version', '')})
+    return {'available': True, 'events': events, 'games': sorted(games.values(), key=lambda g: str(g['last'] or ''), reverse=True),
+            'total': len(docs), 'last': docs[0].get('occurred_at') if docs else None}
+
+
 @require_GET
 @admin_page
 def member_detail_page(request, player_id):
@@ -226,11 +272,12 @@ def member_detail_page(request, player_id):
     account = get_object_or_404(GameAccount.objects.select_related('player'), player_id=player_id)
     history = GameLoginRecord.objects.filter(player_id=player_id).order_by('-occurred_at')
     progress = save_progress(account.save_data)
+    play = play_history(account.player, history.values_list('install_id', flat=True).distinct())
     areas = []
     for key, label in AREAS:
         items = [{'code': code, **g, 'stars': progress['games'].get(code)} for code, g in CATALOG.items() if g['area'] == key]
         areas.append({'key': key, 'label': label, 'games': items, 'done': sum(1 for i in items if i['stars'])})
     return render(request, 'telemetry/member_detail.html', {
         'account': account, 'player': account.player, 'history': history[:50], 'areas': areas,
-        'progress': progress, 'total_games': len(CATALOG),
+        'progress': progress, 'total_games': len(CATALOG), 'play': play,
     })

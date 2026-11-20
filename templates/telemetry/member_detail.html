@@ -8,6 +8,19 @@
   <article class="card stat"><span class="mini-label">클라우드 세이브</span><strong>{% if progress.has_saved_game %}이어하기 가능{% else %}저장 없음{% endif %}</strong><span class="muted">{{ progress.last_saved|slice:':19'|default:'—' }}</span></article>
 </div>
 
+<section class="card section" id="play"><div class="section-head"><div><span class="eyebrow">PLAY · PIPELINE</span><h2>최근 플레이 <span class="count-badge">{{ play.total }}건</span></h2></div><span class="section-caption">{% if play.last %}마지막 이벤트 {{ play.last|date:'Y-m-d H:i:s' }} · {% endif %}새로고침하면 최신 기록이 보입니다</span></div>
+{% if not play.available %}<p class="muted">MongoDB에 연결할 수 없어 플레이 기록을 불러오지 못했습니다.</p>
+{% elif not play.events %}<p class="muted">아직 이 회원의 플레이 이벤트가 없습니다. 게임을 시작하면 파이프라인을 거쳐 수 초 안에 들어옵니다.</p>
+{% else %}
+<div class="table-scroll"><table><thead><tr><th>미니게임</th><th class="numeric">시도</th><th class="numeric">성공</th><th class="numeric">실패</th><th class="numeric">성공률</th><th class="numeric">잘못된 조작</th><th class="numeric">힌트</th><th class="numeric">완료</th><th>마지막 플레이</th></tr></thead><tbody>
+{% for g in play.games %}<tr><td><strong>{{ g.code }}</strong> <small class="muted">{{ g.title }}</small></td><td class="numeric">{{ g.attempts }}</td><td class="numeric">{{ g.succeeded }}</td><td class="numeric">{{ g.failed }}</td><td class="numeric">{% if g.rate != None %}{{ g.rate }}%{% else %}—{% endif %}</td><td class="numeric">{{ g.mistakes }}</td><td class="numeric">{{ g.hints }}</td><td class="numeric">{{ g.completed }}</td><td>{{ g.last|date:'m-d H:i:s' }}</td></tr>{% endfor %}
+</tbody></table></div>
+<h3 class="play-timeline-title">타임라인 <small class="muted">최신 {{ play.events|length }}건</small></h3>
+<div class="table-scroll play-timeline"><table><thead><tr><th>시각</th><th>미니게임</th><th>행동</th><th>상세</th><th>빌드</th></tr></thead><tbody>
+{% for e in play.events %}<tr><td class="mono">{{ e.at|date:'H:i:s' }}<small>{{ e.at|date:'m-d' }}</small></td><td>{{ e.code }}<small>{{ e.title }}</small></td><td><span class="event-kind {{ e.kind }}">{{ e.label }}</span></td><td>{{ e.operation|default:'' }}{% if e.reason %}<small>{{ e.reason }}</small>{% endif %}</td><td>{{ e.build|default:'—' }}</td></tr>{% endfor %}
+</tbody></table></div>
+{% endif %}</section>
+
 {% for area in areas %}
 <section class="card section"><div class="section-head"><div><span class="eyebrow">{{ area.key|upper }}</span><h2>{{ area.label }} <span class="count-badge">{{ area.done }} / {{ area.games|length }}</span></h2></div></div>
 <div class="game-grid">{% for g in area.games %}<div class="game-tile {% if g.stars %}done{% endif %}"><small>{{ g.code }}</small><strong>{{ g.title }}</strong>
