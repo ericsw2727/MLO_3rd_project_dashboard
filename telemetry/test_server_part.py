@@ -318,3 +318,57 @@ class LiveApiTests(TestCase):
         self.assertContains(page, '교환하지 않았어요')
         self.assertNotContains(page, 'someone-else')
         events.delete_many({'_id': {'$in': ['p9-1', 'p9-2', 'p9-3', 'other']}})
+
+    def test_events_page_reads_pipeline_events_and_names_members(self):
+        cache.clear()
+        self.client.post('/api/game/auth/register', json.dumps({'username': 'player7', 'password': 'secret-pass',
+                                                                'install_id': 'inst-ev-7'}), content_type='application/json')
+        account = GameAccount.objects.get(username='player7')
+        now = timezone.now()
+        events = database().pipeline_learning_events
+        ids = ['e7-1', 'e7-2', 'e7-3', 'e7-old']
+        events.delete_many({'_id': {'$in': ids}})
+        events.insert_many([
+            {'_id': 'e7-1', 'player_id': 'inst-ev-7', 'minigame_id': 'SQL01', 'event_type': 'hint_used', 'occurred_at': now - timedelta(seconds=2), 'sequence': 1},
+            {'_id': 'e7-2', 'player_id': 'inst-ev-7', 'minigame_id': 'SQL01', 'event_type': 'attempt_succeeded', 'occurred_at': now, 'sequence': 2},
+            {'_id': 'e7-3', 'player_id': 'stranger-device', 'minigame_id': 'ST01', 'event_type': 'attempt_started', 'occurred_at': now - timedelta(seconds=1)},
+            {'_id': 'e7-old', 'player_id': 'inst-ev-7', 'minigame_id': 'SQL01', 'event_type': 'attempt_started', 'occurred_at': now - timedelta(days=30)},
+        ])
+        self.client.force_login(self.admin)
+        page = self.client.get('/staff/events/')
+        self.assertEqual(page.status_code, 200)
+        rows = [(r['code'], r['kind'], r['member']['name'] if r['member'] else None) for r in page.context['rows'] if r['code'] in ('SQL01', 'ST01')]
+        self.assertEqual(rows, [('SQL01', 'attempt_succeeded', 'player7'), ('ST01', 'attempt_started', None), ('SQL01', 'hint_used', 'player7')])
+        self.assertContains(page, f'/staff/members/{account.player_id}/#play')
+        self.assertContains(page, '미가입 기기')
+        only = self.client.get(f'/staff/events/?member={account.player_id}&kind=hint_used')
+        self.assertEqual([r['kind'] for r in only.context['rows']], ['hint_used'])
+        events.delete_many({'_id': {'$in': ids}})
+
+    def test_overview_counts_pipeline_play_of_members(self):
+        cache.clear()
+        self.client.post('/api/game/auth/register', json.dumps({'username': 'player5', 'password': 'secret-pass',
+                                                                'install_id': 'inst-ov-5'}), content_type='application/json')
+        now = timezone.now()
+        run, attempt, session = 'aaaaaaaa-0000-4000-8000-000000000001', 'aaaaaaaa-0000-4000-8000-000000000002', 'aaaaaaaa-0000-4000-8000-000000000003'
+        base = {'player_id': 'inst-ov-5', 'minigame_id': 'ST01', 'session_id': session, 'run_id': run, 'content_version': 'base'}
+        rows = [('problem_started', None, {}), ('attempt_started', attempt, {}), ('operation_failed', attempt, {'operation': 'push', 'failure_reason': 'full'}),
+                ('hint_used', None, {}), ('attempt_succeeded', attempt, {}), ('problem_completed', None, {})]
+        docs = [{**base, '_id': f'ov-{n}', 'sequence': n, 'event_type': kind, 'attempt_id': att, 'details': details,
+                 'occurred_at': now - timedelta(seconds=60 - n)} for n, (kind, att, details) in enumerate(rows, 1)]
+        docs.append({'_id': 'ov-stranger', 'player_id': 'not-a-member', 'minigame_id': 'ST01', 'run_id': 'x', 'event_type': 'problem_started', 'occurred_at': now})
+        events = database().pipeline_learning_events
+        events.delete_many({'_id': {'$in': [d['_id'] for d in docs]}})
+        events.insert_many(docs)
+        self.client.force_login(self.admin)
+        page = self.client.get('/staff/')
+        self.assertEqual(page.status_code, 200)
+        stats, learning = page.context['stats'], page.context['learning']
+        self.assertEqual((stats['total'], stats['attempts'], stats['hints'], stats['failures']), (6, 1, 1, 1))
+        self.assertEqual((learning['runs'], learning['completed']), (1, 1))
+        self.assertEqual(learning['failures'], [{'operation': 'push', 'reason': 'full', 'count': 1}])
+        st01 = next(g for g in page.context['catalog']['games'] if g['code'] == 'ST01')
+        self.assertEqual((st01['runs'], st01['completed'], st01['hints']), (1, 1, 1))
+        self.assertEqual(self.client.get('/staff/games/?game_id=ST01&category=structures').status_code, 200)
+        self.assertEqual(self.client.get('/staff/players/').status_code, 200)
+        events.delete_many({'_id': {'$in': [d['_id'] for d in docs]}})

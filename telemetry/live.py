@@ -18,6 +18,7 @@ from accounts.views import admin_page, api
 from .catalog import AREAS, CATALOG, classify
 from .models import GameAccount, GameLoginRecord
 from .mongo import database
+from .pipeline_events import EVENT_LABELS, member_keys
 from .releases import active_pack, active_release, build_key
 
 STALE_SECONDS = 30
@@ -219,12 +220,6 @@ def members_page(request):
     })
 
 
-EVENT_LABELS = {
-    'problem_started': '문제 시작', 'problem_completed': '문제 완료', 'attempt_started': '시도 시작',
-    'attempt_succeeded': '시도 성공', 'attempt_failed': '시도 실패', 'operation_succeeded': '조작 성공',
-    'operation_failed': '조작 실패', 'hint_used': '힌트 사용',
-}
-
 
 def play_history(player, install_ids, limit=60):
     """Pipeline learning events for one member, newest first, plus a per-minigame summary.
@@ -232,10 +227,10 @@ def play_history(player, install_ids, limit=60):
     The game currently sends the install ID as player_id, so match on the member's
     install IDs from login history as well as the member ID itself.
     """
-    keys = {str(player.pk), player.pk.hex, *(i for i in install_ids if i)}
+    keys = member_keys(player, install_ids)
     try:
         docs = list(database().pipeline_learning_events.find(
-            {'player_id': {'$in': sorted(keys)}}, sort=[('occurred_at', -1)]).limit(2000))
+            {'player_id': {'$in': keys}}, sort=[('occurred_at', -1)]).limit(2000))
     except Exception:  # MongoDB down: the account page still renders
         return {'available': False, 'events': [], 'games': [], 'total': 0, 'last': None}
     games = {}

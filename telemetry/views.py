@@ -111,14 +111,50 @@ def player_page(request, player_id):
 @require_GET
 @admin_page
 def events_page(request):
-    page_context, players, sessions, events = context(request)
-    if page_context['filter'].is_valid() and page_context['filter'].cleaned_data['event_type']:
-        events = events.filter(event_type=page_context['filter'].cleaned_data['event_type'])
+    """Learning events the pipeline writes to MongoDB (pipeline_learning_events), newest first."""
+    from datetime import datetime, time
+    from .catalog import CATALOG
+    from .models import GameAccount
+    from .pipeline_events import EVENT_LABELS, EventPage, describe, identity_map, member_keys
+
+    today = timezone.localdate()
+
+    def day(name, default):
+        try:
+            return datetime.strptime(request.GET.get(name, ''), '%Y-%m-%d').date()
+        except ValueError:
+            return default
+    start, end = day('start', today - timedelta(days=6)), day('end', today)
+    if start > end:
+        start, end = end, start
+    query = {'occurred_at': {'$gte': timezone.make_aware(datetime.combine(start, time.min)),
+                             '$lt': timezone.make_aware(datetime.combine(end + timedelta(days=1), time.min))}}
+    members = list(GameAccount.objects.select_related('player').order_by('username'))
+    selected_member = next((a for a in members if str(a.player_id) == request.GET.get('member')), None)
+    if selected_member:
+        query['player_id'] = {'$in': member_keys(selected_member.player)}
+    game = request.GET.get('game', '')
+    if game in CATALOG:
+        query['minigame_id'] = game
+    kind = request.GET.get('kind', '')
+    if kind in EVENT_LABELS:
+        query['event_type'] = kind
     selected_sort = 'oldest' if request.GET.get('sort') == 'oldest' else 'recent'
-    ordering = ('occurred_at', 'sequence', 'id') if selected_sort == 'oldest' else ('-occurred_at', '-sequence', '-id')
-    page_context['page'] = Paginator(events.select_related('session__player','run__task','attempt').order_by(*ordering), 30).get_page(request.GET.get('page'))
-    page_context.update({'sort_options': [('recent', '최신 발생순'), ('oldest', '오래된 발생순')], 'selected_sort': selected_sort})
-    return render(request, 'telemetry/events.html', page_context)
+    error = None
+    try:
+        page = Paginator(EventPage(query, newest_first=selected_sort == 'recent'), 30).get_page(request.GET.get('page'))
+        identities = identity_map()
+        rows = [describe(doc, identities) for doc in page.object_list]
+    except Exception:  # MongoDB unreachable: keep the page up and say so
+        page, rows, error = Paginator([], 30).get_page(1), [], 'MongoDB에 연결할 수 없어 행동 로그를 불러오지 못했습니다.'
+    params = request.GET.copy()
+    params.pop('page', None)
+    return render(request, 'telemetry/events.html', {
+        'page': page, 'rows': rows, 'error': error, 'querystring': params.urlencode(),
+        'start': start, 'end': end, 'members': members, 'selected_member': selected_member,
+        'games': [(code, g['title']) for code, g in CATALOG.items()], 'game': game,
+        'kinds': list(EVENT_LABELS.items()), 'kind': kind, 'selected_sort': selected_sort,
+    })
 
 
 def player_data(player):

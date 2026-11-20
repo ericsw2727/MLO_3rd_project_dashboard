@@ -190,11 +190,14 @@ def load_snapshot(members, start, end, filters):
             event.run._prefetched_objects_cache['events'].append(event)
         if event.attempt_id:
             event.attempt = attempts[str(event.attempt_id)]
+    # Real game play arrives only in pipeline_learning_events; add it to the same analytics.
+    from .pipeline_events import analytics_snapshot
+    p_sessions, _, p_events, p_cohort = analytics_snapshot(members, start, end, filters)
     return (
-        Records(session for key, session in sessions.items() if start <= session.started_at < end
-                and (matching_session_ids is None or key in matching_session_ids)),
-        Records(events[doc['_id']] for doc in window_events),
-        Records(runs[doc['_id']] for doc in cohort_docs),
+        Records([*(session for key, session in sessions.items() if start <= session.started_at < end
+                   and (matching_session_ids is None or key in matching_session_ids)), *p_sessions.values()]),
+        Records([*(events[doc['_id']] for doc in window_events), *p_events]),
+        Records([*(runs[doc['_id']] for doc in cohort_docs), *p_cohort]),
     )
 
 

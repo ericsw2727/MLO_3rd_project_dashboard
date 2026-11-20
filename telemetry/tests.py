@@ -197,10 +197,17 @@ class MongoAnalyticsTests(TestCase):
         self.assertEqual(self.client.get('/staff/players/?sort=name').context['rows'][0]['player'].pk, first.pk)
         self.assertEqual(self.client.get('/staff/players/?sort=name_desc').context['rows'][0]['player'].pk, last.pk)
         self.assertEqual(self.client.get('/staff/players/?sort=invalid').context['selected_sort'], 'name')
-        self.event('task_started', 1, 0)
-        self.event('paused', 2, 10)
-        self.assertEqual(self.client.get('/staff/events/?sort=oldest').context['page'][0].sequence, 1)
-        self.assertEqual(self.client.get('/staff/events/?sort=recent').context['page'][0].sequence, 2)
+        # The events page reads the pipeline's learning events (MongoDB pipeline_learning_events).
+        from .mongo import database
+        events = database().pipeline_learning_events
+        events.delete_many({'player_id': 'sort-device'})
+        now = timezone.now()
+        events.insert_many([{'_id': f'sort-{n}', 'player_id': 'sort-device', 'minigame_id': 'ST01', 'event_type': 'attempt_started',
+                             'sequence': n, 'occurred_at': now - timedelta(seconds=10 - n)} for n in (1, 2)])
+        oldest = [r['sequence'] for r in self.client.get('/staff/events/?sort=oldest&game=ST01').context['rows'] if r['raw_player'] == 'sort-device']
+        recent = [r['sequence'] for r in self.client.get('/staff/events/?sort=recent&game=ST01').context['rows'] if r['raw_player'] == 'sort-device']
+        self.assertEqual((oldest, recent), ([1, 2], [2, 1]))
+        events.delete_many({'player_id': 'sort-device'})
 
     @override_settings(DEBUG=True)
     def test_seed_preserves_existing_and_repeats_safely(self):
