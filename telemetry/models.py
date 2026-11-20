@@ -20,6 +20,22 @@ class Player(models.Model):
         constraints = [models.CheckConstraint(condition=Q(source__in=['live', 'demo']), name='player_source_valid')]
 
 
+class GameAccount(models.Model):
+    """Game client player account with PBKDF2 password hash, recovery key, and cloud save JSON."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    player = models.OneToOneField(Player, on_delete=models.CASCADE, related_name='game_account')
+    username = models.CharField(max_length=60, unique=True, db_comment='게임 로그인 아이디')
+    password_hash = models.CharField(max_length=255, db_comment='PBKDF2 암호화 비밀번호 해시')
+    recovery_key = models.CharField(max_length=120, blank=True, default='', db_index=True, db_comment='아이디/비밀번호 찾기용 복구 키')
+    save_data = models.JSONField(default=dict, blank=True, db_comment='클라우드 세이브 (난이도, 점수, 3D 위치, 2D 별점)')
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_login = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'game_accounts'
+        db_table_comment = '게임 클라이언트 회원 계정 및 클라우드 세이브 데이터'
+
+
 class PlaySession(models.Model):
     TOPICS = [('stack', '스택'), ('queue', '큐'), ('tree', '트리')]
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

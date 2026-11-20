@@ -4,10 +4,22 @@ from django.views.decorators.http import require_GET
 from accounts import views
 from telemetry import views as analytics
 from telemetry.game_api import player_login, game_records
+from telemetry.game_auth_api import (
+    game_auth_register,
+    game_auth_login,
+    game_auth_find_id,
+    game_auth_reset_password,
+    game_auth_save,
+)
 
 urlpatterns = [
     path('api/game/records', game_records, name='game-records'),
     path('api/game/player-login', player_login, name='game-player-login'),
+    path('api/game/auth/register', game_auth_register, name='game-auth-register'),
+    path('api/game/auth/login', game_auth_login, name='game-auth-login'),
+    path('api/game/auth/find-id', game_auth_find_id, name='game-auth-find-id'),
+    path('api/game/auth/reset-password', game_auth_reset_password, name='game-auth-reset-password'),
+    path('api/game/auth/save', game_auth_save, name='game-auth-save'),
     path('', require_GET(TemplateView.as_view(template_name='portal/index.html')), name='home'),
     path('index.html', require_GET(RedirectView.as_view(pattern_name='home', permanent=False))),
     path('dashboard.html', require_GET(RedirectView.as_view(pattern_name='dashboard', permanent=False))),
