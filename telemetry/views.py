@@ -133,7 +133,7 @@ def events_page(request):
     selected_member = next((a for a in members if str(a.player_id) == request.GET.get('member')), None)
     if selected_member:
         query['player_id'] = {'$in': member_keys(selected_member.player)}
-    game = request.GET.get('game', '')
+    game = (request.GET.get('game') or request.GET.get('game_id') or '').upper()  # game_id: links from game analysis
     if game in CATALOG:
         query['minigame_id'] = game
     kind = request.GET.get('kind', '')

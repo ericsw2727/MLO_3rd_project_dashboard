@@ -83,3 +83,14 @@ td.low,.numeric.low{color:var(--red);font-weight:bold}
 .data-table-card td small{display:block}
 @media(max-width:1100px){.events-filter{grid-template-columns:repeat(3,minmax(0,1fr))}.events-filter-actions{grid-column:1/-1}}
 @media(max-width:720px){.events-filter{grid-template-columns:1fr 1fr}}
+/* Game analysis: observation status is a clear green "observed" vs grey dashed "no record". */
+.catalog-status{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:11px;font-weight:bold;white-space:nowrap;border:1px solid transparent}
+.catalog-status::before{content:"";width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.catalog-status.observed{background:#1f9d6129;color:#46d68f;border-color:#46d68f80}
+.catalog-status.observed::before{background:#46d68f;box-shadow:0 0 6px #46d68f}
+.catalog-status.empty{background:transparent;color:var(--muted);border:1px dashed var(--line)}
+.catalog-status.empty::before{border:1.5px solid var(--muted)}
+[data-theme=light] .catalog-status.observed{background:#e3f6ec;color:#17784a;border-color:#7ccfa3}
+[data-theme=light] .catalog-status.observed::before{background:#1f9d61;box-shadow:none}
+tr.is-observed>td:first-child{box-shadow:inset 3px 0 0 #46d68f}
+tr.no-record>td:not(:first-child):not(:nth-child(3)){opacity:.5}

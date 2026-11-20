@@ -113,9 +113,15 @@ def analytics_snapshot(members, start, end, filters):
         base['minigame_id'] = filters['task_id'].upper()
     if filters.get('content_version'):
         base['content_version'] = filters['content_version']
-    col = database().pipeline_learning_events
+    db = database()
+    col = db.pipeline_learning_events
     window = list(col.find({**base, 'occurred_at': {'$gte': start, '$lt': end}}))
     run_ids = {d.get('run_id') for d in window} - {None}
+    # The pipeline also projects some runs into the legacy collections (same run IDs);
+    # load_snapshot already counts those, so skip them here to avoid double counting.
+    projected = set(db.problem_runs.distinct('_id', {'_id': {'$in': sorted(run_ids)}})) if run_ids else set()
+    window = [d for d in window if d.get('run_id') not in projected]
+    run_ids -= projected
     docs = {d['_id']: d for d in window}
     docs.update({d['_id']: d for d in col.find({**base, 'run_id': {'$in': sorted(run_ids)}})})
     ordered = sorted(docs.values(), key=lambda d: (d['occurred_at'], d.get('sequence') or 0))

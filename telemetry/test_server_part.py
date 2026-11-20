@@ -372,3 +372,20 @@ class LiveApiTests(TestCase):
         self.assertEqual(self.client.get('/staff/games/?game_id=ST01&category=structures').status_code, 200)
         self.assertEqual(self.client.get('/staff/players/').status_code, 200)
         events.delete_many({'_id': {'$in': [d['_id'] for d in docs]}})
+
+    def test_overview_skips_pipeline_runs_already_in_legacy_collections(self):
+        cache.clear()
+        self.client.post('/api/game/auth/register', json.dumps({'username': 'player4', 'password': 'secret-pass',
+                                                                'install_id': 'inst-dup-4'}), content_type='application/json')
+        run = 'bbbbbbbb-0000-4000-8000-000000000001'
+        db = database()
+        db.pipeline_learning_events.delete_many({'_id': 'dup-1'})
+        db.problem_runs.delete_many({'_id': run})
+        db.pipeline_learning_events.insert_one({'_id': 'dup-1', 'player_id': 'inst-dup-4', 'minigame_id': 'ST01', 'run_id': run,
+                                                'event_type': 'problem_started', 'occurred_at': timezone.now()})
+        self.client.force_login(self.admin)
+        self.assertEqual(self.client.get('/staff/').context['learning']['runs'], 1)
+        db.problem_runs.insert_one({'_id': run, 'session_id': 'not-loaded', 'task_id': 'x'})  # projected by the pipeline
+        self.assertEqual(self.client.get('/staff/').context['learning']['runs'], 0)
+        db.pipeline_learning_events.delete_many({'_id': 'dup-1'})
+        db.problem_runs.delete_many({'_id': run})
