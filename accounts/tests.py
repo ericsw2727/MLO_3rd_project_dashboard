@@ -172,3 +172,25 @@ class AdminAuthTests(TestCase):
         self.assertEqual(self.client.get('/api/auth/logout').status_code, 405)
         self.assertEqual(self.client.post('/api/auth/login', '[]', content_type='application/json').status_code, 400)
         self.assertEqual(self.client.post('/api/auth/login', {}).status_code, 415)
+
+
+
+class DoubleSubmitLoginTests(TestCase):
+    def test_second_login_submit_with_old_token_goes_to_dashboard(self):
+        get_user_model().objects.create_user('opsadmin', password='Ops-Admin!4972', display_name='Ops')
+        c = Client(enforce_csrf_checks=True)
+        page = c.get('/staff/login/')
+        self.assertContains(page, 'single-submit.js')
+        old = c.cookies['csrftoken'].value
+        first = c.post('/staff/login/', {'username': 'opsadmin', 'password': 'Ops-Admin!4972', 'csrfmiddlewaretoken': old})
+        self.assertEqual(first.status_code, 302)
+        second = c.post('/staff/login/', {'username': 'opsadmin', 'password': 'Ops-Admin!4972', 'csrfmiddlewaretoken': old})
+        self.assertIn(second.status_code, (200, 302))
+        self.assertNotEqual(second.status_code, 403)
+        self.assertEqual(c.get('/staff/').status_code, 200)
+
+    def test_anonymous_bad_token_still_rejected(self):
+        c = Client(enforce_csrf_checks=True)
+        c.get('/staff/login/')
+        r = c.post('/staff/login/', {'username': 'x', 'password': 'y', 'csrfmiddlewaretoken': 'wrong' * 8})
+        self.assertEqual(r.status_code, 403)

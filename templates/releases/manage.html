@@ -1,0 +1,27 @@
+{% extends 'accounts/base.html' %}{% block content %}
+<div class="page-heading"><div><span class="eyebrow">GAME RELEASES</span><h1>릴리스 관리<span class="heading-dot">.</span></h1><p class="subtitle">게임이 시작할 때 읽는 매니페스트를 정합니다. 활성 릴리스·팩만 공개되고, 비활성화해도 파일은 지우지 않습니다.</p></div><a class="btn secondary" href="{{ manifest_url }}" target="_blank" rel="noopener">매니페스트 보기 ↗</a></div>
+
+<section class="card section"><div class="section-head"><div><span class="eyebrow">EXE</span><h2>릴리스 <span class="count-badge">{{ releases|length }}</span></h2></div><span class="section-caption">채널마다 가장 높은 활성 버전이 latest_build로 나갑니다</span></div>
+<div class="table-scroll"><table><thead><tr><th>채널</th><th>EXE 버전</th><th>최소 빌드</th><th>변경 내용</th><th>다운로드</th><th>등록</th><th>상태</th><th></th></tr></thead><tbody>
+{% for r in releases %}<tr><td>{{ r.channel }}</td><td><strong>{{ r.build_version }}</strong></td><td>{{ r.min_build }}</td><td>{{ r.notes|default:'—' }}</td><td>{% if r.package_url %}외부 링크{% elif r.package %}ZIP 업로드{% else %}—{% endif %}</td><td>{{ r.published_at|date:'Y-m-d H:i' }}</td>
+<td>{% if r.pk in serving_release_ids %}<span class="badge">공개 중</span>{% elif r.is_active %}<span class="badge">활성</span>{% else %}<span class="badge demo">비활성</span>{% endif %}</td>
+<td><form method="post" action="{% url 'release-toggle' r.pk %}">{% csrf_token %}<button class="btn secondary small-btn" type="submit">{% if r.is_active %}끄기{% else %}켜기{% endif %}</button></form></td></tr>
+{% empty %}<tr><td colspan="8" class="empty">등록된 릴리스가 없습니다. 릴리스가 없으면 매니페스트는 404를 돌려주고, 게임은 오프라인으로 처리해 그대로 실행됩니다.</td></tr>{% endfor %}
+</tbody></table></div></section>
+
+<section class="card section"><div class="section-head"><div><span class="eyebrow">CONTENT PACKS</span><h2>리소스 팩 <span class="count-badge">{{ packs|length }}</span></h2></div><span class="section-caption">가장 최근에 올린 활성 팩이 매니페스트에 나갑니다. 문제가 있으면 끄면 다음 실행부터 이전 팩이 나갑니다.</span></div>
+<div class="table-scroll"><table><thead><tr><th>버전</th><th>파일</th><th class="numeric">크기</th><th>SHA-256 (서버 계산)</th><th>최소 빌드</th><th>업로드</th><th>상태</th><th></th></tr></thead><tbody>
+{% for p in packs %}<tr><td><strong>{{ p.version }}</strong></td><td><a href="/downloads/packs/{{ p.file.name|cut:'packs/' }}">{{ p.file.name|cut:'packs/' }}</a></td><td class="numeric">{{ p.size|filesizeformat }}</td><td><code class="code-id">{{ p.sha256 }}</code></td><td>{{ p.min_build }}</td><td>{{ p.uploaded_at|date:'Y-m-d H:i' }}</td>
+<td>{% if serving_pack and p.pk == serving_pack.pk %}<span class="badge">공개 중</span>{% elif p.is_active %}<span class="badge">활성</span>{% else %}<span class="badge demo">비활성</span>{% endif %}</td>
+<td><form method="post" action="{% url 'pack-toggle' p.pk %}">{% csrf_token %}<button class="btn secondary small-btn" type="submit">{% if p.is_active %}끄기{% else %}켜기{% endif %}</button></form></td></tr>
+{% empty %}<tr><td colspan="8" class="empty">등록된 팩이 없습니다. 이때 매니페스트의 content.version은 base입니다.</td></tr>{% endfor %}
+</tbody></table></div></section>
+
+<div class="release-forms">
+<section class="card section"><span class="eyebrow">NEW RELEASE</span><h2>릴리스 등록</h2>
+<form method="post" enctype="multipart/form-data" class="stack-form">{% csrf_token %}<input type="hidden" name="form" value="release">{{ release_form.as_p }}<button type="submit">릴리스 등록</button></form></section>
+<section class="card section"><span class="eyebrow">NEW PACK</span><h2>리소스 팩 업로드</h2>
+<form method="post" enctype="multipart/form-data" class="stack-form">{% csrf_token %}<input type="hidden" name="form" value="pack">{{ pack_form.as_p }}<button type="submit">팩 업로드</button></form>
+<p class="metric-note">SHA-256과 크기는 업로드한 파일에서 서버가 직접 계산합니다. 같은 버전은 다시 올릴 수 없습니다.</p></section>
+</div>
+{% endblock %}

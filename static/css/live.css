@@ -1,0 +1,61 @@
+/* Live, members, releases, and public download pages. Uses observatory.css tokens. */
+.live-tabs{display:flex;gap:6px;border:1px solid var(--line);border-radius:30px;padding:4px;background:var(--input)}
+.live-tabs a{padding:7px 18px;border-radius:30px;font-size:12px;color:var(--muted)}
+.live-tabs a.active{background:var(--accent);color:#012932;font-weight:bold}
+.live-status{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);margin:-6px 0 16px}
+.live-status.stale{color:var(--red)}
+.live-status.stale .status-dot{background:var(--red);box-shadow:0 0 9px var(--red);animation:live-blink 1s infinite}
+@keyframes live-blink{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.live-status.stale .status-dot{animation:none}}
+.live-table td{padding:8px 12px}
+.spark-cell{color:var(--accent)}
+.spark{display:block}
+td.low,.numeric.low{color:var(--red);font-weight:bold}
+.bar-list{display:flex;flex-direction:column;gap:10px}
+.bar-row{display:grid;grid-template-columns:minmax(80px,1.2fr) 2fr auto;gap:10px;align-items:center;font-size:11px}
+.bar-row span{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-row strong{font-variant-numeric:tabular-nums;font-size:11px}
+.bar-track{height:8px;background:var(--input);border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+.bar-track i{display:block;height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:6px}
+.adoption-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.pack-warning{border-color:var(--red);color:var(--ink);margin-bottom:16px}
+.pack-warning a{color:var(--accent);font-weight:bold}
+.flash-list{margin-bottom:16px}
+.flash{border-color:var(--accent);color:var(--ink)}
+.flash.error{border-color:var(--red)}
+.count-badge{font-size:11px;color:var(--muted);font-weight:normal}
+.release-forms{display:grid;grid-template-columns:1fr 1fr;gap:19px}
+.stack-form p{margin:0 0 14px}
+.stack-form label{display:block;font-size:11px;color:var(--muted);margin-bottom:6px}
+.stack-form input[type=file]{padding:8px}
+.small-btn{padding:5px 12px!important;font-size:11px!important}
+.progress-meter{display:flex;align-items:center;gap:8px}
+.progress-meter .bar-track{width:90px}
+.game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.game-tile{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--input)}
+.game-tile.done{border-color:var(--accent)}
+.game-tile strong{display:block;font-size:12px}
+.game-tile small{color:var(--muted);font-size:10px}
+.week-bars{display:flex;align-items:flex-end;gap:10px;height:120px;padding-top:8px}
+.week-bars div{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;font-size:10px;color:var(--muted)}
+.week-bars i{display:block;width:100%;max-width:34px;background:linear-gradient(0deg,var(--accent2),var(--accent));border-radius:5px 5px 0 0;min-height:2px}
+.search-row{display:flex;gap:8px;max-width:420px}
+.download-page{max-width:720px;margin:40px auto;padding:0 16px}
+.download-home{color:var(--accent);font-size:12px}
+.download-card{margin-top:16px;padding:32px}
+.download-version{font-size:14px}
+.download-btn{margin:12px 0 4px;font-size:14px;padding:14px 22px}
+.download-steps{font-size:12px;line-height:2;color:var(--muted);padding-left:18px}
+.download-steps strong{color:var(--ink)}
+@media(max-width:900px){.release-forms,.adoption-grid{grid-template-columns:1fr}}
+.search-row button{white-space:nowrap;flex-shrink:0}
+.download-hero{display:flex;justify-content:space-between;align-items:center;gap:24px;border-left:4px solid var(--accent)}
+.download-hero-title{font-size:24px;margin:6px 0;color:var(--ink)}
+.download-meta{margin-top:12px}
+.download-hero-action{display:flex;flex-direction:column;align-items:flex-end;gap:6px;max-width:340px}
+.link-list{display:flex;flex-direction:column}
+.link-row{display:grid;grid-template-columns:220px 1fr auto;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.link-row:last-child{border-bottom:0}
+.link-row small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
+.link-url{font-size:11px;color:var(--accent);overflow-wrap:anywhere}
+@media(max-width:900px){.download-hero{flex-direction:column;align-items:flex-start}.download-hero-action{align-items:flex-start}.link-row{grid-template-columns:1fr}.link-row button{justify-self:start}}

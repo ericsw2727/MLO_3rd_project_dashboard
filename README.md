@@ -15,6 +15,29 @@
 - 게임 서버의 로그인 완료 회원 정보 수신 및 실제 플레이어 연결 ([연동 규약](docs/game-login-integration.md))
 - 데이터 모델, 이벤트 규약, SQL 참고 자료 및 팀 공유 문서
 
+### 데이터 흐름 (서버 파트)
+
+**게임 → 수집 API(`/v2/events`) → Kafka → Spark → Delta/MongoDB → Django**
+
+게임의 학습 로그는 파이프라인 수집 API로만 들어옵니다. Django가 받는 요청은 두 종류입니다.
+
+- 게임 클라이언트의 공개 요청: 회원가입·로그인(MySQL), 업데이트 매니페스트·리소스 팩
+- 서버 간 요청: `/api/game/records`, `/api/game/player-login` (`GAME_SERVER_API_KEY`는 서버·파이프라인 환경 변수에만 둡니다)
+
+실시간 화면은 파이프라인이 채운 MongoDB `rt_*` 컬렉션만 읽고, Delta는 직접 읽지 않습니다. 각 파트가 설정할 내용은 [서버 파트 연동 안내](docs/server-integration.md)에 정리했습니다.
+
+| 경로 | 기능 |
+| --- | --- |
+| `/staff/live/` | 실시간 학습 현황(3초 갱신)과 업데이트 진행 탭 |
+| `/staff/members/` | 게임 회원 가입·로그인 기록과 회원별 진행률 |
+| `/staff/releases/` | 게임 릴리스·리소스 팩 등록과 활성화 |
+| `/download/` | 공개 다운로드 페이지 |
+| `GET /api/game/manifest?channel=windows-stable` | 게임 업데이트 매니페스트 (공개, 60초 캐시, ETag) |
+| `POST /api/game/auth/{register,login,find-id,reset-password,save}` | 게임 회원가입·로그인·계정 찾기·클라우드 세이브 (MySQL `game_accounts`, 시도는 `game_login_history`에 기록) |
+| `GET /api/admin/live/summary`, `minigames`, `alerts`, `updates` | 관리자 전용 실시간 API (`minutes`는 1–180) |
+
+파이프라인 데이터가 들어오기 전에는 `manage.py seed_rt`로 목업을 넣고, `seed_rt --clear`로 목업만 지웁니다.
+
 **현재 실행 애플리케이션은 Django + MySQL + MongoDB 구성입니다.** 회원·관리자 정보는 MySQL, 플레이 세션·문제 정의·문제 실행·풀이 시도·행동 이벤트는 MongoDB에 저장합니다. 게임 서버 전용 수집 API는 [MongoDB 연동 규약](docs/mongodb-integration.md)을 참고하세요. Godot 클라이언트와 파이프라인 진단 연동은 별도 구현 범위입니다. `docs/team_handoff`의 규약 3.0은 팀 검토용 제안입니다.
 
 ### 게임 홈페이지와 관리자 연결

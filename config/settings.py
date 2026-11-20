@@ -19,7 +19,7 @@ MONGODB_URI = os.getenv('MONGODB_URI', '')
 MONGODB_DATABASE = os.getenv('MONGODB_DATABASE', 'nodeverse_logs')
 DEBUG = os.getenv('DJANGO_DEBUG', 'False').lower() == 'true'
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
-INSTALLED_APPS = ['django.contrib.auth', 'django.contrib.contenttypes', 'django.contrib.sessions', 'django.contrib.staticfiles', 'accounts', 'telemetry']
+INSTALLED_APPS = ['django.contrib.auth', 'django.contrib.contenttypes', 'django.contrib.sessions', 'django.contrib.messages', 'django.contrib.staticfiles', 'accounts', 'telemetry']
 MIDDLEWARE = [
     'telemetry.mongo.MongoAvailabilityMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -27,16 +27,17 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
 ]
 ROOT_URLCONF = 'config.urls'
 TEST_RUNNER = 'telemetry.test_runner.HybridTestRunner'
 TEMPLATES = [{'BACKEND': 'django.template.backends.django.DjangoTemplates', 'DIRS': [BASE_DIR / 'templates'], 'APP_DIRS': True,
-              'OPTIONS': {'context_processors': ['django.template.context_processors.request', 'django.contrib.auth.context_processors.auth']}}]
+              'OPTIONS': {'context_processors': ['django.template.context_processors.request', 'django.contrib.auth.context_processors.auth', 'django.contrib.messages.context_processors.messages']}}]
 WSGI_APPLICATION = 'config.wsgi.application'
 if os.getenv('DB_ENGINE') == 'sqlite3' or not os.getenv('MYSQL_DATABASE'):
     DATABASES = {'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': Path(os.getenv("DJANGO_SQLITE_PATH", BASE_DIR / "db.sqlite3")),
     }}
 else:
     DATABASES = {'default': {
@@ -69,3 +70,14 @@ SESSION_COOKIE_AGE = 60 * 60 * 8
 CSRF_FAILURE_VIEW = 'accounts.views.csrf_failure'
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static', (str(Path('portal') / 'assets'), BASE_DIR / 'website' / 'assets')]
+# Uploaded game builds and resource packs (local server folder; S3 later).
+MEDIA_ROOT = Path(os.getenv('DJANGO_MEDIA_ROOT', BASE_DIR / 'media'))
+MEDIA_URL = '/media/'
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
+# Optional absolute base URL for manifest links, e.g. http://192.168.0.29:8000
+PUBLIC_BASE_URL = os.getenv('PUBLIC_BASE_URL', '').rstrip('/')
+# Single-process local cache; used for game login rate limits.
+CACHES = {'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}}
+if not DEBUG:
+    SECURE_SSL_REDIRECT = os.getenv('DJANGO_SECURE_SSL_REDIRECT', 'True').lower() == 'true'

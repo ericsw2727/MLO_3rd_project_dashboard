@@ -1,0 +1,38 @@
+{% extends 'accounts/base.html' %}{% load static %}{% block content %}
+<div class="page-heading"><div><span class="eyebrow">REAL-TIME</span><h1>실시간 현황<span class="heading-dot">.</span></h1><p class="subtitle">파이프라인이 MongoDB rt_* 컬렉션에 넣는 값을 3초마다 다시 읽습니다. 누적 분석은 전체 현황에서 봅니다.</p></div>
+<nav class="live-tabs" aria-label="실시간 탭"><a href="?tab=live" {% if tab == 'live' %}class="active" aria-current="page"{% endif %}>학습</a><a href="?tab=updates" {% if tab == 'updates' %}class="active" aria-current="page"{% endif %}>업데이트</a></nav></div>
+
+<p class="live-status" id="live-status" data-stale="{{ stale_seconds }}"><span class="status-dot"></span><span id="live-status-text">불러오는 중…</span></p>
+
+{% if tab == 'live' %}
+<div class="stats live-stats">
+  <article class="card stat featured"><span class="mini-label">최근 1분 이벤트</span><strong id="kpi-events">—</strong><span class="muted">rt_summary.events_last_1m</span></article>
+  <article class="card stat"><span class="mini-label">5분 활성 세션</span><strong id="kpi-sessions">—</strong><span class="muted">rt_summary.active_sessions_5m</span></article>
+  <article class="card stat"><span class="mini-label">최근 30분 시도</span><strong id="kpi-attempts">—</strong><span class="muted">24개 미니게임 합계</span></article>
+  <article class="card stat"><span class="mini-label">실패 급증 경고 (60분)</span><strong id="kpi-alerts">—</strong><span class="muted">시도 20↑ · 실패율 0.4↑ · 평소 1.5배↑</span></article>
+</div>
+<div class="viz-grid">
+  <section class="card viz-card wide"><div class="chart-head"><div><span class="eyebrow">SUCCESS RATE · 30 MIN</span><h2>미니게임별 성공률 추이</h2></div><span class="chart-number">1분 단위</span></div>
+    <div class="table-scroll"><table class="live-table"><thead><tr><th>게임</th><th>영역</th><th>추이 (30분)</th><th class="numeric">시도</th><th class="numeric">성공률</th></tr></thead><tbody id="game-rows"><tr><td colspan="5" class="empty">불러오는 중…</td></tr></tbody></table></div>
+    <p class="chart-note" id="mismatch-note" hidden></p></section>
+  <section class="card viz-card"><div class="chart-head"><div><span class="eyebrow">AREAS · 30 MIN</span><h2>영역별 시도 수</h2></div></div><div id="area-bars" class="bar-list"></div></section>
+  <section class="card viz-card full"><div class="chart-head"><div><span class="eyebrow">ALERTS · 60 MIN</span><h2>실패 급증 경고</h2></div><span class="chart-number">5분 창 · 최신순</span></div>
+    <div class="table-scroll"><table><thead><tr><th>창 시작</th><th>게임</th><th>영역</th><th class="numeric">시도</th><th class="numeric">실패</th><th class="numeric">실패율</th><th class="numeric">평소 실패율</th></tr></thead><tbody id="alert-rows"><tr><td colspan="7" class="empty">불러오는 중…</td></tr></tbody></table></div></section>
+</div>
+{% else %}
+<p class="notice pack-warning" id="pack-warning" hidden></p>
+<div class="stats live-stats">
+  <article class="card stat featured"><span class="mini-label">현재 EXE 보급률</span><strong id="kpi-build">—</strong><span class="muted" id="kpi-build-label">활성 릴리스</span></article>
+  <article class="card stat"><span class="mini-label">현재 팩 보급률</span><strong id="kpi-content">—</strong><span class="muted" id="kpi-content-label">활성 팩</span></article>
+  <article class="card stat"><span class="mini-label">최소 빌드 미만 설치</span><strong id="kpi-below">—</strong><span class="muted">필수 업데이트 대상</span></article>
+  <article class="card stat"><span class="mini-label">안내 반응 (accepted / prompted)</span><strong id="kpi-response">—</strong><span class="muted" id="kpi-response-label">최근 60분</span></article>
+</div>
+<div class="viz-grid">
+  <section class="card viz-card wide"><div class="chart-head"><div><span class="eyebrow">PACK DOWNLOADS · 60 MIN</span><h2>팩 다운로드 추이</h2></div><span class="chart-number">5분 단위</span></div>
+    <div class="table-scroll"><table><thead><tr><th>창 시작</th><th>대상 버전</th><th class="numeric">시작</th><th class="numeric">성공</th><th class="numeric">실패</th><th class="numeric">적재</th><th class="numeric">실패율</th><th class="numeric">중간값 소요</th></tr></thead><tbody id="update-rows"><tr><td colspan="8" class="empty">불러오는 중…</td></tr></tbody></table></div></section>
+  <section class="card viz-card"><div class="chart-head"><div><span class="eyebrow">FAILURE REASONS</span><h2>실패 사유</h2></div></div><div id="reason-bars" class="bar-list"></div></section>
+  <section class="card viz-card full"><div class="chart-head"><div><span class="eyebrow">VERSION ADOPTION · 24H</span><h2>버전별 설치 수</h2></div><span class="chart-number">최근 24시간 설치 ID 기준</span></div><div class="adoption-grid"><div><h3>EXE (build)</h3><div id="build-bars" class="bar-list"></div></div><div><h3>콘텐츠 (content)</h3><div id="content-bars" class="bar-list"></div></div></div></section>
+</div>
+{% endif %}
+<script id="live-config" type="application/json">{"tab": "{{ tab }}", "releasesUrl": "{% url 'releases' %}"}</script>
+{% endblock %}{% block scripts %}<script src="{% static 'js/live.js' %}"></script>{% endblock %}

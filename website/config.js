@@ -1,5 +1,5 @@
 window.NODEVERSE_CONFIG = {
-  gameDownloadUrl: "https://github.com/junbum8398-blip/nodeverse-game/archive/refs/heads/main.zip",
+  gameDownloadUrl: "/download/",
   groqApiKey: "",
   groqModel: ""
 };

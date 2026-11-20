@@ -164,3 +164,60 @@ class BehaviorEvent(models.Model):
             raise ValidationError('구조화된 힌트에는 종류와 1 이상의 단계가 필요합니다.')
         if not all(isinstance(value, dict) for value in (self.state_before, self.state_after, self.payload)):
             raise ValidationError('상태와 추가 데이터는 JSON 객체여야 합니다.')
+
+
+
+class GameLoginRecord(models.Model):
+    """Every sign-up, login, and account recovery attempt from the game, success or failure."""
+    KINDS = [('register', '회원가입'), ('login', '로그인'), ('find_id', '아이디 찾기'), ('reset', '비밀번호 재설정')]
+    id = models.BigAutoField(primary_key=True)
+    player = models.ForeignKey(Player, on_delete=models.SET_NULL, null=True, blank=True, related_name='login_records',
+                               db_column='member_id')
+    login_id = models.CharField(max_length=60, db_comment='요청에 사용된 게임 아이디 (game_accounts.username)')
+    kind = models.CharField(max_length=8, choices=KINDS)
+    success = models.BooleanField()
+    failure_reason = models.CharField(max_length=30, blank=True, default='')
+    install_id = models.CharField(max_length=64, blank=True, default='',
+                                  db_comment='게임 설치 ID. MongoDB 학습 로그의 player_id와 연결')
+    build_version = models.CharField(max_length=20, blank=True, default='')
+    content_version = models.CharField(max_length=40, blank=True, default='')
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    occurred_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'game_login_history'
+        db_table_comment = '게임 회원가입·로그인 기록'
+        indexes = [models.Index(fields=['occurred_at']), models.Index(fields=['install_id'])]
+
+
+class GameRelease(models.Model):
+    """One EXE release per channel; the newest active one is served in the manifest."""
+    channel = models.CharField(max_length=30, default='windows-stable')
+    build_version = models.CharField(max_length=20, db_comment='주.부.수 형식 EXE 버전')
+    min_build = models.CharField(max_length=20, db_comment='이보다 낮은 EXE는 필수 업데이트')
+    download_page = models.URLField(blank=True, default='', db_comment='비우면 이 서버의 /download/')
+    package = models.FileField(upload_to='builds/', blank=True, default='', db_comment='EXE ZIP 파일 (선택)')
+    package_url = models.URLField(blank=True, default='', db_comment='외부 EXE ZIP 주소 (선택)')
+    notes = models.CharField(max_length=500, blank=True, default='')
+    is_active = models.BooleanField(default=True)
+    published_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'game_releases'
+        db_table_comment = '게임 EXE 릴리스와 업데이트 기준'
+        constraints = [models.UniqueConstraint(fields=['channel', 'build_version'], name='release_channel_build_unique')]
+
+
+class ContentPack(models.Model):
+    """Resource pack (.pck). SHA-256 and size are always computed by the server."""
+    version = models.CharField(max_length=40, unique=True, db_comment='예: content-2026.11.19')
+    file = models.FileField(upload_to='packs/')
+    sha256 = models.CharField(max_length=64)
+    size = models.PositiveBigIntegerField()
+    min_build = models.CharField(max_length=20)
+    is_active = models.BooleanField(default=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'game_content_packs'
+        db_table_comment = '게임 리소스 팩. 해시·크기는 서버 계산값'

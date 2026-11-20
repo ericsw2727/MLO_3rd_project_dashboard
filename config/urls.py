@@ -11,6 +11,7 @@ from telemetry.game_auth_api import (
     game_auth_reset_password,
     game_auth_save,
 )
+from telemetry import releases, live
 
 urlpatterns = [
     path('api/game/records', game_records, name='game-records'),
@@ -20,6 +21,11 @@ urlpatterns = [
     path('api/game/auth/find-id', game_auth_find_id, name='game-auth-find-id'),
     path('api/game/auth/reset-password', game_auth_reset_password, name='game-auth-reset-password'),
     path('api/game/auth/save', game_auth_save, name='game-auth-save'),
+    # Game client: updates (public, read-only).
+    path('api/game/manifest', releases.manifest, name='game-manifest'),
+    path('downloads/packs/<str:filename>', releases.pack_file, name='pack-file'),
+    path('downloads/builds/<int:release_id>/', releases.build_file, name='build-file'),
+    path('download/', releases.download_page, name='download'),
     path('', require_GET(TemplateView.as_view(template_name='portal/index.html')), name='home'),
     path('index.html', require_GET(RedirectView.as_view(pattern_name='home', permanent=False))),
     path('dashboard.html', require_GET(RedirectView.as_view(pattern_name='dashboard', permanent=False))),
@@ -29,6 +35,13 @@ urlpatterns = [
     path('staff/players/<uuid:player_id>/', analytics.player_page, name='player-detail'),
     path('staff/events/', analytics.events_page, name='events'),
     path('staff/guide/', analytics.guide_page, name='guide'),
+    path('staff/live/', live.live_page, name='live'),
+    path('staff/members/', live.members_page, name='members'),
+    path('staff/members/<uuid:player_id>/', live.member_detail_page, name='member-detail'),
+    path('staff/download/', releases.download_admin_page, name='download-tab'),
+    path('staff/releases/', releases.releases_page, name='releases'),
+    path('staff/releases/<int:release_id>/toggle/', releases.toggle_release, name='release-toggle'),
+    path('staff/releases/packs/<int:pack_id>/toggle/', releases.toggle_pack, name='pack-toggle'),
     path('staff/export/', analytics.export_runs, name='export'),
     path('staff/register/', views.admin_register_page, name='admin-register'),
     path('staff/login/', views.admin_login_page, name='admin-login'),
@@ -49,4 +62,8 @@ urlpatterns = [
     path('api/admin/players', analytics.players_api),
     path('api/admin/players/<uuid:player_id>', analytics.player_api),
     path('api/admin/events', analytics.events_api),
+    path('api/admin/live/summary', live.summary_api),
+    path('api/admin/live/minigames', live.minigames_api),
+    path('api/admin/live/alerts', live.alerts_api),
+    path('api/admin/live/updates', live.updates_api),
 ]

@@ -1,0 +1,24 @@
+{% extends 'accounts/base.html' %}{% block content %}
+<div class="page-heading"><div><span class="eyebrow">MEMBER</span><h1>{{ account.username }}<span class="heading-dot">.</span></h1><p class="subtitle">가입 {{ account.created_at|date:'Y-m-d H:i' }} · 마지막 로그인 {{ account.last_login|date:'Y-m-d H:i'|default:'—' }} · 복구 키 {% if account.recovery_key %}등록됨{% else %}없음{% endif %}</p></div><a class="btn secondary" href="{% url 'members' %}">← 회원 목록</a></div>
+
+<div class="stats">
+  <article class="card stat featured"><span class="mini-label">미니게임 클리어</span><strong>{{ progress.cleared }}</strong><span class="muted">별 {{ progress.stars }}개</span></article>
+  <article class="card stat"><span class="mini-label">점수</span><strong>{{ progress.score|default:'0' }}</strong><span class="muted">퀴즈 {{ progress.quizzes }}개 클리어</span></article>
+  <article class="card stat"><span class="mini-label">난이도 · 구역</span><strong>{{ progress.difficulty|default:'—' }}</strong><span class="muted">{{ progress.zone|default:'—' }}</span></article>
+  <article class="card stat"><span class="mini-label">클라우드 세이브</span><strong>{% if progress.has_saved_game %}이어하기 가능{% else %}저장 없음{% endif %}</strong><span class="muted">{{ progress.last_saved|slice:':19'|default:'—' }}</span></article>
+</div>
+
+{% for area in areas %}
+<section class="card section"><div class="section-head"><div><span class="eyebrow">{{ area.key|upper }}</span><h2>{{ area.label }} <span class="count-badge">{{ area.done }} / {{ area.games|length }}</span></h2></div></div>
+<div class="game-grid">{% for g in area.games %}<div class="game-tile {% if g.stars %}done{% endif %}"><small>{{ g.code }}</small><strong>{{ g.title }}</strong>
+<small>{% if g.stars %}클리어 · ★{{ g.stars }}{% else %}기록 없음{% endif %}</small></div>{% endfor %}</div></section>
+{% endfor %}
+{% if progress.other %}<section class="card section"><div class="section-head"><div><span class="eyebrow">OTHER</span><h2>다른 이름으로 저장된 클리어 기록</h2></div><span class="section-caption">게임의 minigame_cleared 키가 24개 실행 ID(ST01 등)와 다릅니다</span></div>
+<div class="game-grid">{% for name, stars in progress.other.items %}<div class="game-tile {% if stars %}done{% endif %}"><strong>{{ name }}</strong><small>★{{ stars }}</small></div>{% endfor %}</div></section>{% endif %}
+
+<section class="card section"><div class="section-head"><div><span class="eyebrow">HISTORY</span><h2>가입·로그인·계정 찾기 기록</h2></div></div>
+<div class="table-scroll"><table><thead><tr><th>시각</th><th>종류</th><th>결과</th><th>설치 ID</th><th>빌드</th><th>IP</th></tr></thead><tbody>
+{% for r in history %}<tr><td>{{ r.occurred_at|date:'Y-m-d H:i:s' }}</td><td>{{ r.get_kind_display }}</td><td>{% if r.success %}<span class="badge">성공</span>{% else %}<span class="badge demo">{{ r.failure_reason }}</span>{% endif %}</td><td><code class="code-id">{{ r.install_id|default:'—' }}</code></td><td>{{ r.build_version|default:'—' }}</td><td>{{ r.ip_address|default:'—' }}</td></tr>
+{% empty %}<tr><td colspan="6" class="empty">기록이 없습니다.</td></tr>{% endfor %}
+</tbody></table></div></section>
+{% endblock %}

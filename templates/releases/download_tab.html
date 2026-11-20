@@ -1,0 +1,66 @@
+{% extends 'accounts/base.html' %}{% block content %}
+<div class="page-heading"><div><span class="eyebrow">GAME DOWNLOAD</span><h1>게임 다운로드<span class="heading-dot">.</span></h1><p class="subtitle">지금 플레이어가 받는 게임과, 공유·설정에 쓰는 주소를 한곳에서 확인합니다.</p></div>
+<div class="actions"><a class="btn secondary" href="{% url 'download' %}" target="_blank" rel="noopener">공개 페이지 보기 ↗</a><a class="btn secondary" href="{% url 'releases' %}">릴리스 관리</a></div></div>
+
+<section class="card download-hero">
+  {% if release %}
+  <div>
+    <span class="eyebrow">CURRENT RELEASE · WINDOWS</span>
+    <h2 class="download-hero-title">NODEVERSE {{ release.build_version }}</h2>
+    <p class="subtitle">{{ release.notes|default:'변경 내용 없음' }}</p>
+    <div class="badge-row download-meta">
+      <span class="badge">최소 빌드 {{ release.min_build }}</span>
+      <span class="badge">콘텐츠 {% if pack %}{{ pack.version }}{% else %}base{% endif %}</span>
+      <span class="badge">{{ release.published_at|date:'Y-m-d H:i' }} 등록</span>
+    </div>
+  </div>
+  <div class="download-hero-action">
+    {% if link %}<a class="btn download-btn" href="{{ link }}">⬇ 게임 다운로드 (ZIP)</a>
+    <small class="muted">{% if release.package_url %}외부 링크로 연결됩니다{% else %}이 서버에 올린 파일입니다{% endif %}</small>
+    {% else %}<p class="notice">이 릴리스에 다운로드 파일이 없습니다. <a href="{% url 'releases' %}">릴리스 관리</a>에서 EXE ZIP을 올리거나 외부 주소를 넣어 주세요.</p>{% endif %}
+  </div>
+  {% else %}
+  <div>
+    <span class="eyebrow">NO RELEASE</span>
+    <h2 class="download-hero-title">공개된 릴리스가 없습니다</h2>
+    <p class="subtitle">릴리스가 없으면 다운로드 페이지가 비어 있고, 게임은 매니페스트 404를 받아 업데이트 확인 없이 실행됩니다.</p>
+  </div>
+  <div class="download-hero-action"><a class="btn" href="{% url 'releases' %}">첫 릴리스 등록하기</a></div>
+  {% endif %}
+</section>
+
+<section class="card section"><div class="section-head"><div><span class="eyebrow">LINKS</span><h2>공유·설정 주소</h2></div><span class="section-caption">로컬 실행 중에는 같은 네트워크에서만 열립니다</span></div>
+<div class="link-list">{% for item in links %}
+  <div class="link-row"><div><strong>{{ item.label }}</strong><small>{{ item.help }}</small></div>
+  <code class="link-url">{{ item.url }}</code>
+  <button type="button" class="btn secondary small-btn" data-copy="{{ item.url }}">복사</button></div>
+{% endfor %}</div></section>
+
+<div class="viz-grid">
+<section class="card viz-card wide"><div class="section-head"><div><span class="eyebrow">HISTORY</span><h2>버전 기록</h2></div><span class="section-caption">비활성 버전은 다운로드할 수 없습니다</span></div>
+<div class="table-scroll"><table><thead><tr><th>버전</th><th>최소 빌드</th><th>변경 내용</th><th>등록</th><th class="numeric">크기</th><th>상태</th><th></th></tr></thead><tbody>
+{% for r in history %}<tr><td><strong>{{ r.build_version }}</strong></td><td>{{ r.min_build }}</td><td>{{ r.notes|default:'—' }}</td><td>{{ r.published_at|date:'Y-m-d' }}</td><td class="numeric">{% if r.size %}{{ r.size|filesizeformat }}{% else %}—{% endif %}</td>
+<td>{% if release and r.pk == release.pk %}<span class="badge">현재</span>{% elif r.is_active %}<span class="badge">활성</span>{% else %}<span class="badge demo">비활성</span>{% endif %}</td>
+<td>{% if r.link %}<a href="{{ r.link }}">받기</a>{% else %}—{% endif %}</td></tr>
+{% empty %}<tr><td colspan="7" class="empty">아직 등록된 버전이 없습니다.</td></tr>{% endfor %}
+</tbody></table></div></section>
+
+<section class="card viz-card"><div class="section-head"><div><span class="eyebrow">GUIDE</span><h2>플레이어 설치 안내</h2></div></div>
+<ol class="download-steps">
+  <li>ZIP을 받아 압축을 풉니다.</li>
+  <li><code>NODEVERSE.exe</code>를 실행합니다.</li>
+  <li>SmartScreen 창이 뜨면 <strong>추가 정보 → 실행</strong>을 누릅니다.</li>
+  <li>리소스 팩은 게임이 켜질 때 자동으로 받습니다. 새 EXE가 필요하면 게임이 다운로드 페이지로 안내합니다.</li>
+</ol></section>
+</div>
+{% endblock %}{% block scripts %}<script>
+document.querySelectorAll('[data-copy]').forEach(function (button) {
+  button.addEventListener('click', function () {
+    var text = button.getAttribute('data-copy');
+    var done = function () { button.textContent = '복사됨'; setTimeout(function () { button.textContent = '복사'; }, 1500); };
+    if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(text).then(done); return; }
+    var area = document.createElement('textarea'); area.value = text; document.body.appendChild(area); area.select();
+    try { document.execCommand('copy'); done(); } finally { area.remove(); }
+  });
+});
+</script>{% endblock %}

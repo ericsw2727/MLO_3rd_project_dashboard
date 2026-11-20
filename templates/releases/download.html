@@ -1,0 +1,30 @@
+{% load static %}<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NODEVERSE 다운로드</title>
+<link rel="stylesheet" href="{% static 'css/observatory.css' %}">
+<link rel="stylesheet" href="{% static 'css/live.css' %}">
+</head><body>
+<main class="download-page">
+  <a class="download-home" href="{% url 'home' %}">← NODEVERSE 홈페이지</a>
+  <section class="card download-card">
+    <span class="eyebrow">WINDOWS DOWNLOAD</span>
+    <h1>NODEVERSE 받기</h1>
+    {% if release %}
+      <p class="download-version">최신 버전 <strong>{{ release.build_version }}</strong>{% if pack %} · 콘텐츠 {{ pack.version }}{% endif %}</p>
+      {% if release.notes %}<p class="subtitle">{{ release.notes }}</p>{% endif %}
+      {% if link %}<a class="btn download-btn" href="{{ link }}">Windows용 ZIP 다운로드</a>
+      {% else %}<p class="notice">다운로드 파일이 아직 등록되지 않았습니다. 관리자에게 문의해 주세요.</p>{% endif %}
+      <p class="metric-note">{{ release.published_at|date:'Y-m-d' }} 등록 · 최소 지원 버전 {{ release.min_build }}</p>
+    {% else %}
+      <p class="notice">아직 공개된 릴리스가 없습니다.</p>
+    {% endif %}
+    <h2>설치 방법</h2>
+    <ol class="download-steps">
+      <li>ZIP을 받아 원하는 폴더에 압축을 풉니다.</li>
+      <li><code>NODEVERSE.exe</code>를 실행합니다.</li>
+      <li>"Windows의 PC 보호" (SmartScreen) 창이 뜨면 <strong>추가 정보</strong> → <strong>실행</strong>을 누릅니다. 서명되지 않은 학습용 게임이라 처음 실행할 때 나오는 안내입니다.</li>
+      <li>콘텐츠 업데이트(리소스 팩)는 게임을 켤 때 자동으로 받습니다. 새 EXE가 필요할 때만 이 페이지로 안내됩니다.</li>
+    </ol>
+  </section>
+</main>
+</body></html>

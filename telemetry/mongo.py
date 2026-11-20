@@ -41,6 +41,10 @@ def initialize_indexes():
     db.gameplay_events.create_index([('session_id', 1), ('sequence', 1)], unique=True)
     db.gameplay_events.create_index([('run_id', 1), ('occurred_at', 1)])
     db.gameplay_events.create_index([('occurred_at', 1), ('event_type', 1)])
+    # Real-time collections written by the pipeline (read-only for Django).
+    db.rt_minigame_1m.create_index([('window_start', 1)])
+    db.rt_alerts.create_index([('window_start', 1)])
+    db.rt_updates.create_index([('window_start', 1)])
 
 
 def normalized(value):

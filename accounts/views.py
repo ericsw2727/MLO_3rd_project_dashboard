@@ -4,6 +4,7 @@ from django.contrib.auth import login, logout
 from django.http import JsonResponse, HttpResponseForbidden
 from django.middleware.csrf import get_token
 from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.http import require_GET, require_POST
@@ -15,6 +16,10 @@ from .development import local_test_login_allowed, TEST_ADMIN_ID, TEST_ADMIN_USE
 def csrf_failure(request, reason=''):
     if request.path.startswith('/api/'):
         return JsonResponse({'error': 'csrf_failed'}, status=403)
+    # A login/register form sent twice: the first submit already logged in and rotated the token.
+    # Nothing is done with the rejected request; just take the admin where the first submit was going.
+    if request.path in (reverse('admin-login'), reverse('admin-register')) and request.user.is_authenticated:
+        return redirect('dashboard')
     return HttpResponseForbidden('CSRF 검증에 실패했습니다. 페이지를 새로고침하세요.')
 
 

@@ -1,0 +1,34 @@
+{% extends 'accounts/base.html' %}{% block content %}
+<div class="page-heading"><div><span class="eyebrow">GAME MEMBERS</span><h1>게임 회원<span class="heading-dot">.</span></h1><p class="subtitle">게임에서 가입·로그인한 계정과 클라우드 세이브 진행 상황(MySQL game_accounts)을 봅니다.</p></div>
+<form class="search-row" method="get"><input type="search" name="q" value="{{ query }}" placeholder="아이디 또는 이름" aria-label="회원 검색"><button type="submit">검색</button></form></div>
+
+<div class="stats">
+  <article class="card stat featured"><span class="mini-label">전체 회원</span><strong>{{ stats.members }}</strong><span class="muted">서버 DB 계정</span></article>
+  <article class="card stat"><span class="mini-label">오늘 가입</span><strong>{{ stats.signups_today }}</strong></article>
+  <article class="card stat"><span class="mini-label">오늘 로그인</span><strong>{{ stats.logins_today }}</strong><span class="muted">성공 기준</span></article>
+  <article class="card stat"><span class="mini-label">오늘 실패한 시도</span><strong>{{ stats.failed_today }}</strong><span class="muted">가입·로그인·계정 찾기 실패</span></article>
+</div>
+
+<div class="viz-grid">
+<section class="card viz-card wide data-table-card"><div class="section-head"><div><span class="eyebrow">MEMBERS</span><h2>회원 목록 <span class="count-badge">{{ page.paginator.count }}명</span></h2></div><span class="section-caption">미니게임 클리어 = 클라우드 세이브에 기록된 클리어 수</span></div>
+<div class="table-scroll"><table><thead><tr><th>회원</th><th>가입</th><th>마지막 로그인</th><th class="numeric">로그인</th><th class="numeric">실패</th><th>미니게임 클리어</th><th class="numeric">별</th><th class="numeric">점수</th><th>마지막 저장</th></tr></thead><tbody>
+{% for row in rows %}<tr><td><a class="person-cell" href="{% url 'member-detail' row.player.pk %}"><span class="person-avatar">{{ row.account.username|slice:':1' }}</span><span><span class="person-name">{{ row.account.username }}</span><small>{{ row.progress.difficulty|default:'난이도 —' }} · {{ row.progress.zone|default:'구역 —' }}</small></span></a></td>
+<td>{{ row.account.created_at|date:'Y-m-d H:i' }}</td><td>{{ row.account.last_login|date:'Y-m-d H:i'|default:'—' }}</td>
+<td class="numeric">{{ row.account.logins }}</td><td class="numeric">{{ row.account.failures }}</td>
+<td><span class="progress-meter"><span class="bar-track"><i style="width:{% widthratio row.progress.cleared total_games 100 %}%"></i></span>{{ row.progress.cleared }}</span></td>
+<td class="numeric">{{ row.progress.stars }}</td><td class="numeric">{{ row.progress.score|default:'0' }}</td><td>{{ row.progress.last_saved|slice:':16'|default:'—' }}</td></tr>
+{% empty %}<tr><td colspan="9" class="empty"><strong>아직 게임 회원이 없습니다</strong><p>게임이 /api/game/auth/register 로 가입하면 이곳에 표시됩니다.</p></td></tr>{% endfor %}
+</tbody></table></div>
+{% include 'telemetry/pagination.html' %}</section>
+
+<section class="card viz-card"><div class="chart-head"><div><span class="eyebrow">LOGINS · 7 DAYS</span><h2>일별 로그인</h2></div></div>
+<div class="week-bars">{% for day in week %}<div title="{{ day.date|date:'m/d' }} {{ day.count }}회"><strong>{{ day.count }}</strong><i style="height:{{ day.pct }}%"></i><span>{{ day.date|date:'m/d' }}</span></div>{% endfor %}</div></section>
+
+<section class="card viz-card full"><div class="section-head"><div><span class="eyebrow">RECENT</span><h2>최근 가입·로그인·계정 찾기 기록</h2></div></div>
+<div class="table-scroll"><table><thead><tr><th>시각</th><th>종류</th><th>아이디</th><th>결과</th><th>설치 ID</th><th>빌드</th><th>IP</th></tr></thead><tbody>
+{% for r in recent %}<tr><td>{{ r.occurred_at|date:'m-d H:i:s' }}</td><td>{{ r.get_kind_display }}</td><td>{% if r.player %}<a href="{% url 'member-detail' r.player.pk %}">{{ r.login_id }}</a>{% else %}{{ r.login_id|default:'—' }}{% endif %}</td>
+<td>{% if r.success %}<span class="badge">성공</span>{% else %}<span class="badge demo">{{ r.failure_reason }}</span>{% endif %}</td><td><code class="code-id">{{ r.install_id|default:'—' }}</code></td><td>{{ r.build_version|default:'—' }}</td><td>{{ r.ip_address|default:'—' }}</td></tr>
+{% empty %}<tr><td colspan="7" class="empty">기록이 없습니다.</td></tr>{% endfor %}
+</tbody></table></div></section>
+</div>
+{% endblock %}

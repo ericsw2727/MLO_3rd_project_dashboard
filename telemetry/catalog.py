@@ -86,3 +86,24 @@ def report(runs, events):
                 unmapped=metrics(unknown), unmapped_ids=[dict(task_id=k, runs=n) for k, n in unknown_ids.items()],
                 totals=all_metrics, missing_active=all_metrics['completed'] - all_metrics['timed_completed'],
                 window_events=events.count())
+
+
+# Common contract v2 category codes -> server areas. The screen classifies by
+# minigame_id (catalog), never by the incoming category: ST06/ST09 are prefixed
+# like structures but belong to algorithms.
+CATEGORY_AREAS = {'DS': 'structures', 'ALGO': 'algorithms', 'SQL': 'sql', 'DATA': 'data'}
+AREA_LABELS = dict(AREAS)
+
+
+def classify(minigame_id, category=None):
+    """Catalog entry for a v2 minigame_id, plus whether the sent category disagrees."""
+    game = game_for(minigame_id or '')
+    sent_area = CATEGORY_AREAS.get(str(category or '').upper())
+    return {
+        'minigame_id': str(minigame_id or ''),
+        'title': game['title'] if game else None,
+        'concept': game['concept'] if game else None,
+        'area': game['area'] if game else 'unmapped',
+        'area_label': AREA_LABELS.get(game['area'], '미분류') if game else '미분류',
+        'category_mismatch': bool(game and sent_area and sent_area != game['area']),
+    }
