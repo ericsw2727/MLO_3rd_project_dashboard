@@ -90,7 +90,7 @@ title('서버 파트 변경사항 · 진행상황')
 p('게임 팀이 올린 회원·클라우드 세이브 API(커밋 5b79ea4)를 기준으로, 서버 파트 기능(로그인 기록, 관리자 대시보드, 업데이트 배포)을 붙였습니다. '
   '게임이 쓰는 API의 요청·응답 형식은 바꾸지 않았으므로 게임 클라이언트는 수정할 것이 없습니다.')
 table(['항목', '내용'], [
-    ['GitHub', '저장소 MLO_3rd_project_dashboard / 브랜치 server/live-members-releases / 커밋 5824299\n아직 main에 합치지 않았습니다. 검토 후 Pull Request로 합칩니다.'],
+    ['GitHub', '저장소 MLO_3rd_project_dashboard / main 브랜치에 반영 완료 (커밋 5824299, c3436fa)\ngit pull로 받으면 됩니다.'],
     ['서버 PC MySQL (192.168.0.167)', '마이그레이션 적용 완료. game_accounts 테이블 생성, 쓰지 않는 game_member_credentials 삭제'],
     ['서버 PC MongoDB (192.168.0.167)', 'Django에서 접속 확인, 인덱스 생성 완료. rt_* 실시간 컬렉션은 아직 비어 있음(파이프라인 연결 전)'],
     ['Django (192.168.0.29:8000)', '실행 중. API 5개, 로그인 기록, 게임 회원 화면을 실제 서버 DB로 확인함'],
@@ -196,7 +196,6 @@ bullets([
 ])
 h('서버 담당 (남은 일)')
 bullets([
-    '브랜치 server/live-members-releases를 Pull Request로 main에 합치기',
     'Django PC 네트워크를 "개인"으로 바꾸기: 지금 "공용"이라 8000 포트 방화벽 규칙(개인·도메인)이 적용되지 않아 다른 PC에서 접속이 막힐 수 있음',
     '첫 EXE 릴리스와 리소스 팩을 /staff/releases/에 등록',
     'MongoDB 인증이 켜지면 .env의 MONGODB_URI를 읽기 전용 계정 주소로 변경',
@@ -214,8 +213,8 @@ table(['문제', '영향', '제안'], [
 note('게임과 홈페이지에는 DB 비밀번호, GAME_SERVER_API_KEY, 관리자 초대 코드를 넣지 않습니다. .env 파일은 깃에 올리지 않습니다.')
 
 h('내 PC에서 실행해 보기')
-code('git fetch origin\n'
-     'git switch server/live-members-releases\n'
+code('git switch main\n'
+     'git pull origin main\n'
      '.venv/Scripts/python.exe -m pip install -r requirements.txt\n'
      '.venv/Scripts/python.exe manage.py migrate      # 공유 DB에는 이미 적용됨\n'
      '.venv/Scripts/python.exe manage.py runserver 0.0.0.0:8000')
