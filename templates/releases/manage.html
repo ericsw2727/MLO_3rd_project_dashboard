@@ -1,5 +1,5 @@
 {% extends 'accounts/base.html' %}{% block content %}
-<div class="page-heading"><div><span class="eyebrow">GAME RELEASES</span><h1>릴리스 관리<span class="heading-dot">.</span></h1><p class="subtitle">게임이 시작할 때 읽는 매니페스트를 정합니다. 활성 릴리스·팩만 공개되고, 비활성화해도 파일은 지우지 않습니다.</p></div><a class="btn secondary" href="{{ manifest_url }}" target="_blank" rel="noopener">매니페스트 보기 ↗</a></div>
+<div class="page-heading"><div><span class="eyebrow">GAME RELEASES</span><h1>릴리스 관리</h1><p class="subtitle">게임이 시작할 때 읽는 매니페스트를 정합니다. 활성 릴리스·팩만 공개되고, 비활성화해도 파일은 지우지 않습니다.</p></div><a class="btn secondary" href="{{ manifest_url }}" target="_blank" rel="noopener">매니페스트 보기 ↗</a></div>
 
 <section class="card section"><div class="section-head"><div><span class="eyebrow">EXE</span><h2>릴리스 <span class="count-badge">{{ releases|length }}</span></h2></div><span class="section-caption">채널마다 가장 높은 활성 버전이 latest_build로 나갑니다</span></div>
 <div class="table-scroll"><table><thead><tr><th>채널</th><th>EXE 버전</th><th>최소 빌드</th><th>변경 내용</th><th>다운로드</th><th>등록</th><th>상태</th><th></th></tr></thead><tbody>

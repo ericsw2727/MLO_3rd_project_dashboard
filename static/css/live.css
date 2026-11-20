@@ -35,9 +35,9 @@ td.low,.numeric.low{color:var(--red);font-weight:bold}
 .game-tile{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--input)}
 .game-tile.done{border-color:var(--accent)}
 .game-tile strong{display:block;font-size:12px}
-.game-tile small{color:var(--muted);font-size:10px}
+.game-tile small{color:var(--muted);font-size:11px}
 .week-bars{display:flex;align-items:flex-end;gap:10px;height:120px;padding-top:8px}
-.week-bars div{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;font-size:10px;color:var(--muted)}
+.week-bars div{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;font-size:11px;color:var(--muted)}
 .week-bars i{display:block;width:100%;max-width:34px;background:linear-gradient(0deg,var(--accent2),var(--accent));border-radius:5px 5px 0 0;min-height:2px}
 .search-row{display:flex;gap:8px;max-width:420px}
 .download-page{max-width:720px;margin:40px auto;padding:0 16px}
@@ -56,7 +56,7 @@ td.low,.numeric.low{color:var(--red);font-weight:bold}
 .link-list{display:flex;flex-direction:column}
 .link-row{display:grid;grid-template-columns:220px 1fr auto;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
 .link-row:last-child{border-bottom:0}
-.link-row small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
+.link-row small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
 .link-url{font-size:11px;color:var(--accent);overflow-wrap:anywhere}
 @media(max-width:900px){.download-hero{flex-direction:column;align-items:flex-start}.download-hero-action{align-items:flex-start}.link-row{grid-template-columns:1fr}.link-row button{justify-self:start}}
 /* Live page layout: tabs never squeeze, full cards span the row, side cards keep their own height. */
@@ -69,7 +69,7 @@ td.low,.numeric.low{color:var(--red);font-weight:bold}
 .live-grid .table-scroll thead th{position:sticky;top:0;background:var(--panel);z-index:1}
 .live-table td{vertical-align:middle}
 .live-table td strong{display:block}
-.live-table td small{display:block;font-size:10px;color:var(--muted);margin-top:2px;white-space:nowrap}
+.live-table td small{display:block;font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap}
 .live-grid .bar-list{padding-top:4px}
 @media(max-width:1100px){.viz-grid.live-grid>.viz-card:not(.full){grid-column:1/-1}}
 .person-tabs{display:inline-flex;margin-top:14px}

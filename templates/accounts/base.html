@@ -5,11 +5,12 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <title>{% block title %}NODEVERSE &middot; Learning Observatory{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'css/observatory.css' %}">
-  <link rel="stylesheet" href="{% static 'css/dashboard-refresh.css' %}">
-  <link rel="stylesheet" href="{% static 'css/catalog-dashboard.css' %}">
-  <link rel="stylesheet" href="{% static 'css/live.css' %}?v=6">
-  <script src="{% static 'js/observatory.js' %}" defer></script>
+  <link rel="stylesheet" href="{% static 'css/observatory.css' %}?v=9">
+  <link rel="stylesheet" href="{% static 'css/dashboard-refresh.css' %}?v=9">
+  <link rel="stylesheet" href="{% static 'css/catalog-dashboard.css' %}?v=9">
+  <link rel="stylesheet" href="{% static 'css/live.css' %}?v=9">
+  <link rel="stylesheet" href="{% static 'css/ui-polish.css' %}?v=9">
+  <script src="{% static 'js/observatory.js' %}?v=9" defer></script>
   <script src="{% static 'js/dashboard-refresh.js' %}" defer></script>
 </head>
 <body>
@@ -20,7 +21,7 @@
     <div class="sidebar-profile">
       <a class="profile-portrait" href="{% url 'me' %}" aria-label="My account"><span>{{ user.display_name|default:user.username|slice:':1' }}</span><i></i></a>
       <strong>{{ user.display_name|default:user.username }}</strong>
-      <span class="profile-role">관리자 워크스페이스</span>
+      <span class="profile-role">관리자</span>
       <span class="profile-divider"></span>
     </div>
     <span class="nav-caption">분석</span>

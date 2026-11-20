@@ -1,0 +1,60 @@
+/* Readability layer, loaded last. Text uses theme tokens so both light and dark meet ~4.5:1 contrast. */
+
+/* Tables: values in ink, secondary lines muted */
+td,td strong,.progress-meter{color:var(--ink)}
+.person-name,.person-cell>span,td a:not(.text-link):not(.btn){color:var(--ink)!important}
+td small,.mono,.game-goal{color:var(--muted)}
+th{color:var(--muted);font-weight:600}
+tr.no-record>td:not(:first-child):not(:nth-child(3)){opacity:.72}
+.text-link{color:var(--accent);font-weight:600}
+
+/* KPI cards */
+.stat-top,.stat-top span,.mini-label,.stat .muted,.stat-bottom,.stat-bottom span{color:var(--muted)}
+.stat-chip{color:#24563f!important;background:#dcefe3!important}
+[data-theme=dark] .stat-chip{color:#bfe3cf!important;background:#2c3c33!important}
+
+/* Filter summary, chips, counters */
+.filter-summary-main strong,.filter-label,.filter-change{color:var(--ink)!important}
+.source-chip,.count-badge{color:var(--ink)}
+.catalog-code,.catalog-table>summary>span:last-child{color:#5b44a0}
+[data-theme=dark] .catalog-code,[data-theme=dark] .catalog-table>summary>span:last-child{color:#c2b2f0}
+.pagination,.pagination a{color:var(--muted)}
+.page-current{background:var(--panel-hi)!important;color:var(--ink)!important}
+
+/* Tabs: active pill text readable on the accent in both themes */
+.live-tabs a{color:var(--muted);font-weight:600}
+.live-tabs a.active{color:#fff}
+[data-theme=dark] .live-tabs a.active{color:#1b1830}
+
+/* Status chips: same hues, darker text in light theme, lighter in dark */
+.badge{color:#2f6248}
+.badge.demo{color:#7a5a12}
+.person-avatar{color:#5b3f86}
+.event-kind{color:#4b3a78}
+.event-kind.attempt_succeeded,.event-kind.operation_succeeded,.event-kind.task_completed,.event-kind.problem_completed{color:#2b6246}
+.event-kind.attempt_failed,.event-kind.operation_failed{color:#8f3f22}
+.event-kind.hint,.event-kind.hint_used{color:#7a5a12}
+[data-theme=dark] .badge{color:#b9e0c8}
+[data-theme=dark] .badge.demo{color:#ead39b}
+[data-theme=dark] .person-avatar{color:#d3c3f3}
+[data-theme=dark] .event-kind{color:#d3c3f3}
+[data-theme=dark] .event-kind.attempt_succeeded,[data-theme=dark] .event-kind.operation_succeeded,[data-theme=dark] .event-kind.task_completed,[data-theme=dark] .event-kind.problem_completed{color:#b9e0c8}
+[data-theme=dark] .event-kind.attempt_failed,[data-theme=dark] .event-kind.operation_failed{color:#f2b8a3}
+[data-theme=dark] .event-kind.hint,[data-theme=dark] .event-kind.hint_used{color:#ead39b}
+
+/* Tidy spacing: consistent section rhythm and quieter card hover */
+.workspace>.card,.workspace>section{margin-bottom:22px}
+.card:hover,.stat:hover,.viz-card:hover{transform:none!important}
+.page-heading .subtitle{max-width:760px}
+
+/* Sidebar: profile role on one line, a little air between nav groups */
+.profile-role{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;font-size:10.5px!important;letter-spacing:-.2px}
+.sidebar-nav+.nav-caption{margin-top:18px}
+.nav-caption{letter-spacing:1px}
+
+/* Tables placed straight in a card (no scroll wrapper) wrap instead of spilling out */
+.card :not(.table-scroll)>table td{white-space:normal;overflow-wrap:anywhere}
+.text-link{font-size:12px}
+.week-bars div{min-width:0}
+.btn,a.btn{white-space:nowrap}
+.page-heading{gap:16px}

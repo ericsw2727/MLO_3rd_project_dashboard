@@ -1,5 +1,5 @@
 {% extends 'accounts/base.html' %}{% load static %}{% block content %}
-<div class="page-heading"><div><span class="eyebrow">REAL-TIME</span><h1>실시간 현황<span class="heading-dot">.</span></h1><p class="subtitle">파이프라인이 MongoDB rt_* 컬렉션에 넣는 값을 3초마다 다시 읽습니다. 누적 분석은 전체 현황에서 봅니다.</p></div>
+<div class="page-heading"><div><span class="eyebrow">REAL-TIME</span><h1>실시간 현황</h1><p class="subtitle">파이프라인이 MongoDB rt_* 컬렉션에 넣는 값을 3초마다 다시 읽습니다. 누적 분석은 전체 현황에서 봅니다.</p></div>
 <nav class="live-tabs" aria-label="실시간 탭"><a href="?tab=live" {% if tab == 'live' %}class="active" aria-current="page"{% endif %}>학습</a><a href="?tab=updates" {% if tab == 'updates' %}class="active" aria-current="page"{% endif %}>업데이트</a></nav></div>
 
 <p class="live-status" id="live-status" data-stale="{{ stale_seconds }}"><span class="status-dot"></span><span id="live-status-text">불러오는 중…</span></p>

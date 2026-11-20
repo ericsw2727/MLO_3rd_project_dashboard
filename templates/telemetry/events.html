@@ -1,5 +1,5 @@
 {% extends 'accounts/base.html' %}{% block content %}
-<div class="page-heading"><div><span class="eyebrow">ACTIVITY EXPLORER</span><h1>행동 로그 탐색<span class="heading-dot">.</span></h1><p class="subtitle">게임에서 일어난 시도·조작·힌트를 파이프라인(MongoDB pipeline_learning_events)에서 바로 읽습니다. 새로고침하면 최신 기록이 보입니다.</p></div><a class="btn secondary" href="{% url 'guide' %}">이벤트 지표 가이드 ↗</a></div>
+<div class="page-heading"><div><span class="eyebrow">ACTIVITY EXPLORER</span><h1>행동 로그 탐색</h1><p class="subtitle">게임에서 일어난 시도·조작·힌트를 파이프라인(MongoDB pipeline_learning_events)에서 바로 읽습니다. 새로고침하면 최신 기록이 보입니다.</p></div><a class="btn secondary" href="{% url 'guide' %}">이벤트 지표 가이드 ↗</a></div>
 
 <form class="card events-filter" method="get">
   <div class="field"><label for="ev-start">시작일</label><input id="ev-start" type="date" name="start" value="{{ start|date:'Y-m-d' }}"></div>

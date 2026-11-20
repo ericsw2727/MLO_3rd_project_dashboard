@@ -1,5 +1,5 @@
 {% extends 'accounts/base.html' %}{% block content %}
-<div class="page-heading"><div><span class="eyebrow">MEMBER</span><h1>{{ account.username }}<span class="heading-dot">.</span></h1><p class="subtitle">가입 {{ account.created_at|date:'Y-m-d H:i' }} · 마지막 로그인 {{ account.last_login|date:'Y-m-d H:i'|default:'—' }} · 복구 키 {% if account.recovery_key %}등록됨{% else %}없음{% endif %}</p>{% include 'telemetry/person_tabs.html' with current='account' pid=player.pk has_account=True %}</div><a class="btn secondary" href="{% url 'members' %}">← 플레이어 목록</a></div>
+<div class="page-heading"><div><span class="eyebrow">MEMBER</span><h1>{{ account.username }}</h1><p class="subtitle">가입 {{ account.created_at|date:'Y-m-d H:i' }} · 마지막 로그인 {{ account.last_login|date:'Y-m-d H:i'|default:'—' }} · 복구 키 {% if account.recovery_key %}등록됨{% else %}없음{% endif %}</p>{% include 'telemetry/person_tabs.html' with current='account' pid=player.pk has_account=True %}</div><a class="btn secondary" href="{% url 'members' %}">← 플레이어 목록</a></div>
 
 <div class="stats">
   <article class="card stat featured"><span class="mini-label">미니게임 클리어</span><strong>{{ progress.cleared }}</strong><span class="muted">별 {{ progress.stars }}개</span></article>

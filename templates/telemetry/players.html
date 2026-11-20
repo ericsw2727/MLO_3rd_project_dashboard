@@ -1,5 +1,5 @@
 {% extends 'accounts/base.html' %}{% block content %}
-<div class="page-heading"><div><span class="eyebrow">PLAYERS</span><h1>플레이어<span class="heading-dot">.</span></h1><p class="subtitle">각 플레이어의 학습 기록과 문제 해결 과정을 한눈에 살펴보세요. 가입하지 않은 플레이어도 포함됩니다.</p>{% include 'telemetry/person_tabs.html' with current='learning' %}</div><a class="btn secondary" href="{% url 'export' %}?{{ querystring }}">풀이 기록 내보내기 ↗</a></div>
+<div class="page-heading"><div><span class="eyebrow">PLAYERS</span><h1>플레이어</h1><p class="subtitle">각 플레이어의 학습 기록과 문제 해결 과정을 한눈에 살펴보세요. 가입하지 않은 플레이어도 포함됩니다.</p>{% include 'telemetry/person_tabs.html' with current='learning' %}</div><a class="btn secondary" href="{% url 'export' %}?{{ querystring }}">풀이 기록 내보내기 ↗</a></div>
 {% include 'telemetry/filters.html' %}
 <section class="card section data-table-card"><div class="section-head"><div><span class="eyebrow">ALL PLAYERS</span><h2>플레이어 목록 <span class="count-badge">{{ page.paginator.count }}명</span></h2></div><span class="section-caption">회원 정보와 학습 기록</span></div>
 {% include 'telemetry/table_controls.html' %}

@@ -1,5 +1,5 @@
 {% extends 'accounts/base.html' %}{% block content %}
-<div class="page-heading"><div><span class="eyebrow">PLAYERS</span><h1>플레이어<span class="heading-dot">.</span></h1><p class="subtitle">게임에서 가입·로그인한 계정과 클라우드 세이브 진행 상황(MySQL game_accounts)을 봅니다.</p>{% include 'telemetry/person_tabs.html' with current='account' %}</div>
+<div class="page-heading"><div><span class="eyebrow">PLAYERS</span><h1>플레이어</h1><p class="subtitle">게임에서 가입·로그인한 계정과 클라우드 세이브 진행 상황(MySQL game_accounts)을 봅니다.</p>{% include 'telemetry/person_tabs.html' with current='account' %}</div>
 <form class="search-row" method="get"><input type="search" name="q" value="{{ query }}" placeholder="아이디 또는 이름" aria-label="회원 검색"><button type="submit">검색</button></form></div>
 
 <div class="stats">

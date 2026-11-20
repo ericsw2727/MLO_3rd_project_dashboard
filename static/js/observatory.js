@@ -10,7 +10,7 @@ const C=['var(--accent)','var(--accent2)','var(--purple)','var(--red)','var(--am
 const nfmt=n=>new Intl.NumberFormat('ko-KR',{maximumFractionDigits:1}).format(n);
 function node(tag,attrs={},text){const e=document.createElementNS(NS,tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,String(v)));if(text!==undefined)e.textContent=text;return e}
 function add(svg,tag,attrs,text){const e=node(tag,attrs,text);svg.append(e);return e}
-function label(svg,x,y,text,size=10,anchor='middle',ink=false){return add(svg,'text',{x,y,'text-anchor':anchor,'font-size':size,class:ink?'chart-svg-title':'chart-svg-label'},text)}
+function label(svg,x,y,text,size=10,anchor='middle',ink=false){return add(svg,'text',{x,y,'text-anchor':anchor,'font-size':size<11?size+1.5:size,class:ink?'chart-svg-title':'chart-svg-label'},text)}
 function tip(e,text){e.dataset.tip=text;e.setAttribute('tabindex','0');e.setAttribute('aria-label',text);e.append(node('title',{},text));return e}
 function chart(el){el.replaceChildren();const w=Math.max(280,el.clientWidth),h=el.clientHeight;const s=node('svg',{viewBox:`0 0 ${w} ${h}`,role:'img','aria-label':el.dataset.label||'분석 그래프'});el.append(s);return {s,w,h}}
 function empty(el,message='선택한 조건에 관측 데이터가 없습니다.'){el.replaceChildren();const p=document.createElement('p');p.className='chart-empty';p.textContent=message;el.append(p)}
