@@ -59,3 +59,17 @@ td.low,.numeric.low{color:var(--red);font-weight:bold}
 .link-row small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
 .link-url{font-size:11px;color:var(--accent);overflow-wrap:anywhere}
 @media(max-width:900px){.download-hero{flex-direction:column;align-items:flex-start}.download-hero-action{align-items:flex-start}.link-row{grid-template-columns:1fr}.link-row button{justify-self:start}}
+/* Live page layout: tabs never squeeze, full cards span the row, side cards keep their own height. */
+.page-heading:has(.live-tabs){flex-wrap:wrap;gap:16px}
+.live-tabs{flex-shrink:0;align-self:flex-start}
+.live-tabs a{white-space:nowrap}
+.live-grid{align-items:start}
+.viz-grid.live-grid>.viz-card.full{grid-column:1/-1}
+.live-grid .table-scroll{max-height:560px;overflow:auto}
+.live-grid .table-scroll thead th{position:sticky;top:0;background:var(--panel);z-index:1}
+.live-table td{vertical-align:middle}
+.live-table td strong{display:block}
+.live-table td small{display:block;font-size:10px;color:var(--muted);margin-top:2px;white-space:nowrap}
+.live-grid .bar-list{padding-top:4px}
+@media(max-width:1100px){.viz-grid.live-grid>.viz-card:not(.full){grid-column:1/-1}}
+.person-tabs{display:inline-flex;margin-top:14px}

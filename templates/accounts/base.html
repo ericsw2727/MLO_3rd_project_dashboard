@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="{% static 'css/observatory.css' %}">
   <link rel="stylesheet" href="{% static 'css/dashboard-refresh.css' %}">
   <link rel="stylesheet" href="{% static 'css/catalog-dashboard.css' %}">
-  <link rel="stylesheet" href="{% static 'css/live.css' %}">
+  <link rel="stylesheet" href="{% static 'css/live.css' %}?v=3">
   <script src="{% static 'js/observatory.js' %}" defer></script>
   <script src="{% static 'js/dashboard-refresh.js' %}" defer></script>
 </head>
@@ -27,13 +27,12 @@
     <nav class="sidebar-nav" aria-label="주요 메뉴">
       <a {% if request.resolver_match.url_name == 'dashboard' and scope != 'game' %}class="current" aria-current="page"{% endif %} href="{% url 'dashboard' %}">{% include 'accounts/nav_icon.html' with icon='dashboard' %}<span>전체 현황</span></a>
       <a {% if request.resolver_match.url_name == 'games' or scope == 'game' %}class="current" aria-current="page"{% endif %} href="{% url 'games' %}">{% include 'accounts/nav_icon.html' with icon='chart' %}<span>게임 분석</span></a>
-      <a {% if request.resolver_match.url_name == 'players' or request.resolver_match.url_name == 'player-detail' %}class="current" aria-current="page"{% endif %} href="{% url 'players' %}">{% include 'accounts/nav_icon.html' with icon='users' %}<span>플레이어</span></a>
+      <a {% if request.resolver_match.url_name == 'players' or request.resolver_match.url_name == 'player-detail' or request.resolver_match.url_name == 'members' or request.resolver_match.url_name == 'member-detail' %}class="current" aria-current="page"{% endif %} href="{% url 'members' %}">{% include 'accounts/nav_icon.html' with icon='users' %}<span>플레이어</span></a>
       <a {% if request.resolver_match.url_name == 'events' %}class="current" aria-current="page"{% endif %} href="{% url 'events' %}">{% include 'accounts/nav_icon.html' with icon='activity' %}<span>행동 로그</span></a>
     </nav>
     <span class="nav-caption">실시간 · 운영</span>
     <nav class="sidebar-nav" aria-label="실시간 및 운영">
       <a {% if request.resolver_match.url_name == 'live' %}class="current" aria-current="page"{% endif %} href="{% url 'live' %}">{% include 'accounts/nav_icon.html' with icon='activity' %}<span>실시간 현황</span></a>
-      <a {% if request.resolver_match.url_name == 'members' or request.resolver_match.url_name == 'member-detail' %}class="current" aria-current="page"{% endif %} href="{% url 'members' %}">{% include 'accounts/nav_icon.html' with icon='users' %}<span>게임 회원</span></a>
       <a {% if request.resolver_match.url_name == 'download-tab' %}class="current" aria-current="page"{% endif %} href="{% url 'download-tab' %}">{% include 'accounts/nav_icon.html' with icon='download' %}<span>게임 다운로드</span></a>
       <a {% if request.resolver_match.url_name == 'releases' %}class="current" aria-current="page"{% endif %} href="{% url 'releases' %}">{% include 'accounts/nav_icon.html' with icon='calendar' %}<span>릴리스 관리</span></a>
     </nav>

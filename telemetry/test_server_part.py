@@ -285,3 +285,11 @@ class LiveApiTests(TestCase):
         self.assertEqual(detail.status_code, 200)
         self.assertContains(detail, 'stack_room')
         self.assertEqual([r.kind for r in detail.context['history']], ['register'])
+        # One sidebar entry: account view and learning view link to each other for the same person.
+        pid = row['player'].pk
+        self.assertContains(page, 'href="/staff/players/"')
+        self.assertContains(detail, f'href="/staff/players/{pid}/"')
+        learning = self.client.get(f'/staff/players/{pid}/')
+        self.assertEqual(learning.status_code, 200)
+        self.assertContains(learning, f'href="/staff/members/{pid}/"')
+        self.assertNotContains(page, '<span>게임 회원</span>')
